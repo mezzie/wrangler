@@ -291,6 +291,76 @@ public final class WindowManagerCoordinator: ObservableObject {
         dismissOverlay()
     }
 
+    /// Swaps the positions of the two frontmost windows on the active display
+    public func swapTopTwoWindows() {
+        guard let screen = displayManager.currentScreen() else { return }
+        do {
+            try accessibilityEngine.swapTopTwoWindows(on: screen)
+        } catch {
+            print("Swap windows error: \(error.localizedDescription)")
+        }
+    }
+
+    /// Returns current top on-screen windows for preview in Preferences
+    public func getDetectedOnScreenWindows() -> [(element: AXUIElement, target: WindowTarget)] {
+        guard let screen = displayManager.currentScreen() else { return [] }
+        return accessibilityEngine.getTopOnScreenWindows(on: screen)
+    }
+
+    /// Captures all visible windows on the active display as a named workspace (Rectangle Pro model)
+    public func saveCurrentWorkspace(name: String) {
+        guard let screen = displayManager.currentScreen() else { return }
+        // Capture only top on-screen windows (not occluded/hidden apps)
+        let windows = accessibilityEngine.getTopOnScreenWindows(on: screen)
+        guard !windows.isEmpty else {
+            print("Notice: No visible windows found to save in workspace.")
+            return
+        }
+
+        var seenBundleIDs = Set<String>()
+        var slots: [AppSlot] = []
+
+        for item in windows {
+            guard let bid = item.target.bundleID, !seenBundleIDs.contains(bid) else { continue }
+            seenBundleIDs.insert(bid)
+
+            slots.append(AppSlot(
+                bundleID: bid,
+                appName: item.target.appName ?? bid,
+                frame: item.target.frame
+            ))
+        }
+
+        guard !slots.isEmpty else { return }
+
+        var settings = AppSettings.load()
+        let ws = SavedWorkspace(name: name, slots: slots)
+        settings.savedWorkspaces.removeAll { $0.name == name }
+        settings.savedWorkspaces.append(ws)
+        settings.save()
+    }
+
+    /// Restores all applications in a saved workspace back to their exact assigned slots
+    public func restoreWorkspace(id: String) {
+        let settings = AppSettings.load()
+        guard let ws = settings.savedWorkspaces.first(where: { $0.id == id }) else { return }
+
+        for slot in ws.slots {
+            let apps = NSWorkspace.shared.runningApplications.filter {
+                $0.bundleIdentifier == slot.bundleID && !$0.isTerminated
+            }
+            guard let app = apps.first else { continue }
+
+            // Target the app's PRIMARY MAIN WINDOW
+            guard let (mainWin, _) = try? accessibilityEngine.getMainWindowElement(for: app) else {
+                continue
+            }
+
+            try? accessibilityEngine.setWindowFrame(slot.frame, element: mainWin)
+            app.activate(options: .activateIgnoringOtherApps)
+        }
+    }
+
     public func undoLastSnap() {
         let appToSnap = resolveTargetApp()
 

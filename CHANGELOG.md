@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.7.0] - 2026-10-31
+
+### Added
+- **Workspaces (Profiles)**: Save and restore entire multi-window desktop setups using the deterministic Rectangle Pro App-to-Slot model with occlusion culling.
+- **Window Swap**: Instant reciprocal position swap for frontmost windows (`⌃ ⌥ S`).
+- **Numpad Spatial Snapping**: Direct keypad bindings (`⌃ ⌥ 1` to `⌃ ⌥ 9`).
+- **Shake to Summon**: Fast cursor shake gesture to summon grid HUD.
+- **Modifier-Hold Snap**: Hold `Control` or `fn` while dragging to reveal snap blueprints anywhere.
+- **Dedicated Menu Bar Icon**: Retina dual-pane lasso template icon (`isTemplate = true`).
+- **34 Automated Unit Tests**: Comprehensive regression test suite.
+
+---
+
 ## [1.6.0] - 2026-10-31
 
 ### Added

@@ -49,6 +49,12 @@ public struct CustomShortcut: Codable, Equatable, Sendable {
         displayString: "⌥ ⌘ Z"
     )
 
+    public static let defaultSwap = CustomShortcut(
+        keyCode: 1,
+        carbonModifiers: UInt32(controlKey | optionKey),
+        displayString: "⌃ ⌥ S"
+    )
+
     /// Converts an NSEvent keydown into a CustomShortcut
     public static func from(event: NSEvent) -> CustomShortcut? {
         let flags = event.modifierFlags.intersection([.command, .option, .control, .shift])

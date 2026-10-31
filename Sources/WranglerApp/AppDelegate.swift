@@ -43,6 +43,16 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
                 WindowManagerCoordinator.shared.undoLastSnap()
             }
         }
+        GlobalHotKeyManager.shared.onSwapPressed = {
+            Task { @MainActor in
+                WindowManagerCoordinator.shared.swapTopTwoWindows()
+            }
+        }
+        GlobalHotKeyManager.shared.onNumpadPressed = { preset in
+            Task { @MainActor in
+                WindowManagerCoordinator.shared.snapFocusedWindow(preset: preset)
+            }
+        }
         GlobalHotKeyManager.shared.registerFromSettings()
 
         // Start drag-to-snap zones monitor

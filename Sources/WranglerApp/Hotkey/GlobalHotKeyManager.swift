@@ -14,6 +14,8 @@ public final class GlobalHotKeyManager {
     public var onAutoTilePressed: (() -> Void)?
     public var onMaximizePressed: (() -> Void)?
     public var onUndoPressed: (() -> Void)?
+    public var onSwapPressed: (() -> Void)?
+    public var onNumpadPressed: ((String) -> Void)?
 
     private init() {}
 
@@ -42,6 +44,28 @@ public final class GlobalHotKeyManager {
 
         // 6. Undo
         registerSingle(id: 6, shortcut: settings.undoShortcut)
+
+        // 7. Swap Top Two Windows (⌃ ⌥ S)
+        registerSingle(id: 7, shortcut: settings.swapShortcut)
+
+        // Numpad 1-9 (⌃ ⌥ Numpad 1..9)
+        if settings.enableNumpadHotkeys {
+            let numpadMap: [(UInt32, UInt32)] = [
+                (101, 83), // 1: bottom-left
+                (102, 84), // 2: bottom-half
+                (103, 85), // 3: bottom-right
+                (104, 86), // 4: left-half
+                (105, 87), // 5: center
+                (106, 88), // 6: right-half
+                (107, 89), // 7: top-left
+                (108, 91), // 8: top-half
+                (109, 92)  // 9: top-right
+            ]
+            let mods = UInt32(controlKey | optionKey)
+            for (id, code) in numpadMap {
+                registerRaw(id: id, keyCode: code, carbonModifiers: mods)
+            }
+        }
     }
 
     private func installCarbonHandler() {
@@ -78,6 +102,26 @@ public final class GlobalHotKeyManager {
                     manager.onMaximizePressed?()
                 case 6:
                     manager.onUndoPressed?()
+                case 7:
+                    manager.onSwapPressed?()
+                case 101:
+                    manager.onNumpadPressed?("bottom-left")
+                case 102:
+                    manager.onNumpadPressed?("bottom-half")
+                case 103:
+                    manager.onNumpadPressed?("bottom-right")
+                case 104:
+                    manager.onNumpadPressed?("left-half")
+                case 105:
+                    manager.onNumpadPressed?("center")
+                case 106:
+                    manager.onNumpadPressed?("right-half")
+                case 107:
+                    manager.onNumpadPressed?("top-left")
+                case 108:
+                    manager.onNumpadPressed?("top-half")
+                case 109:
+                    manager.onNumpadPressed?("top-right")
                 default:
                     break
                 }
@@ -95,11 +139,15 @@ public final class GlobalHotKeyManager {
     }
 
     private func registerSingle(id: UInt32, shortcut: CustomShortcut) {
+        registerRaw(id: id, keyCode: shortcut.keyCode, carbonModifiers: shortcut.carbonModifiers)
+    }
+
+    private func registerRaw(id: UInt32, keyCode: UInt32, carbonModifiers: UInt32) {
         let hotKeyID = EventHotKeyID(signature: OSType(0x5752474C), id: id) // "WRGL"
         var hotKeyRef: EventHotKeyRef?
         let regStatus = RegisterEventHotKey(
-            shortcut.keyCode,
-            shortcut.carbonModifiers,
+            keyCode,
+            carbonModifiers,
             hotKeyID,
             GetApplicationEventTarget(),
             0,

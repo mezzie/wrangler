@@ -14,7 +14,23 @@ public final class StatusBarController {
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
 
         if let button = statusItem.button {
-            button.image = NSImage(systemSymbolName: "square.grid.3x3.square", accessibilityDescription: "Wrangler")
+            var iconImage: NSImage?
+
+            // 1. Try dedicated MenuBarIcon from bundle
+            if let imagePath = Bundle.main.path(forResource: "MenuBarIcon", ofType: "png"),
+               let img = NSImage(contentsOfFile: imagePath) {
+                img.size = NSSize(width: 18, height: 18)
+                img.isTemplate = true
+                iconImage = img
+            } else if let img = NSImage(named: "MenuBarIcon") {
+                img.size = NSSize(width: 18, height: 18)
+                img.isTemplate = true
+                iconImage = img
+            } else {
+                iconImage = NSImage(systemSymbolName: "rectangle.split.2x1", accessibilityDescription: "Wrangler")
+            }
+
+            button.image = iconImage
             button.imagePosition = .imageOnly
         }
 
@@ -43,6 +59,16 @@ public final class StatusBarController {
         autoTileItem.keyEquivalentModifierMask = [.control, .option]
         autoTileItem.target = self
         menu.addItem(autoTileItem)
+
+        // Swap
+        let swapItem = NSMenuItem(
+            title: "Swap Front Windows",
+            action: #selector(swapClicked),
+            keyEquivalent: "s"
+        )
+        swapItem.keyEquivalentModifierMask = [.control, .option]
+        swapItem.target = self
+        menu.addItem(swapItem)
 
         menu.addItem(NSMenuItem.separator())
 
@@ -81,6 +107,26 @@ public final class StatusBarController {
         let presetsItem = NSMenuItem(title: "Snap Presets", action: nil, keyEquivalent: "")
         presetsItem.submenu = presetsMenu
         menu.addItem(presetsItem)
+
+        // Workspaces Submenu
+        let wsMenu = NSMenu(title: "Workspaces")
+        let saveWsItem = NSMenuItem(title: "Save Current Workspace...", action: #selector(saveWorkspaceClicked), keyEquivalent: "")
+        saveWsItem.target = self
+        wsMenu.addItem(saveWsItem)
+
+        let settings = AppSettings.load()
+        if !settings.savedWorkspaces.isEmpty {
+            wsMenu.addItem(NSMenuItem.separator())
+            for ws in settings.savedWorkspaces {
+                let item = NSMenuItem(title: ws.name, action: #selector(restoreWorkspaceClicked(_:)), keyEquivalent: "")
+                item.representedObject = ws.id
+                item.target = self
+                wsMenu.addItem(item)
+            }
+        }
+        let wsItem = NSMenuItem(title: "Workspaces", action: nil, keyEquivalent: "")
+        wsItem.submenu = wsMenu
+        menu.addItem(wsItem)
 
         // 4. Undo
         let undoItem = NSMenuItem(
@@ -134,6 +180,34 @@ public final class StatusBarController {
 
     @objc private func autoTileClicked() {
         coordinator.autoTileCurrentDisplay()
+    }
+
+    @objc private func swapClicked() {
+        coordinator.swapTopTwoWindows()
+    }
+
+    @objc private func saveWorkspaceClicked() {
+        let alert = NSAlert()
+        alert.messageText = "Save Workspace"
+        alert.informativeText = "Enter a name for this desktop window layout:"
+        alert.alertStyle = .informational
+        let input = NSTextField(frame: NSRect(x: 0, y: 0, width: 200, height: 24))
+        input.stringValue = "Workspace \(AppSettings.load().savedWorkspaces.count + 1)"
+        alert.accessoryView = input
+        alert.addButton(withTitle: "Save")
+        alert.addButton(withTitle: "Cancel")
+        if alert.runModal() == .alertFirstButtonReturn {
+            let name = input.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
+            if !name.isEmpty {
+                coordinator.saveCurrentWorkspace(name: name)
+                buildMenu()
+            }
+        }
+    }
+
+    @objc private func restoreWorkspaceClicked(_ sender: NSMenuItem) {
+        guard let wsID = sender.representedObject as? String else { return }
+        coordinator.restoreWorkspace(id: wsID)
     }
 
     @objc private func nextDisplayClicked() {

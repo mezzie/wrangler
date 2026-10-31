@@ -4,6 +4,7 @@ import WranglerCore
 public enum PrefsSection: String, CaseIterable, Identifiable {
     case snapZones = "Snap Zones"
     case grid = "Grid & Gaps"
+    case workspaces = "Workspaces"
     case behavior = "Behavior"
     case shortcuts = "Shortcuts"
     case about = "About & Updates"
@@ -14,6 +15,7 @@ public enum PrefsSection: String, CaseIterable, Identifiable {
         switch self {
         case .snapZones: return "rectangle.split.2x1"
         case .grid: return "square.grid.3x3"
+        case .workspaces: return "macwindow.on.rectangle"
         case .behavior: return "gearshape"
         case .shortcuts: return "keyboard"
         case .about: return "info.circle"
@@ -26,6 +28,8 @@ public struct PreferencesView: View {
     @State private var selectedSection: PrefsSection = .snapZones
     @State private var recordingKey: String? = nil
     @State private var keyMonitor: Any? = nil
+    @State private var launchAtLogin: Bool = false
+    @State private var newWorkspaceName: String = ""
 
     public init() {}
 
@@ -90,6 +94,8 @@ public struct PreferencesView: View {
                         snapZonesContent
                     case .grid:
                         gridContent
+                    case .workspaces:
+                        workspacesContent
                     case .behavior:
                         behaviorContent
                     case .shortcuts:
@@ -110,7 +116,7 @@ public struct PreferencesView: View {
 
                     Spacer()
 
-                    if selectedSection != .about {
+                    if selectedSection != .about && selectedSection != .workspaces {
                         Button("Restore Defaults") {
                             restoreCurrentTabDefaults()
                         }
@@ -123,7 +129,10 @@ public struct PreferencesView: View {
             .padding(24)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         }
-        .frame(width: 690, height: 460)
+        .frame(width: 710, height: 490)
+        .onAppear {
+            launchAtLogin = LaunchAtLogin.isEnabled
+        }
         .onDisappear {
             stopRecording()
         }
@@ -182,6 +191,14 @@ public struct PreferencesView: View {
                     Text("\(Int(settings.snapTriggerThreshold)) px")
                         .font(.system(.body, design: .monospaced))
                         .frame(width: 50, alignment: .leading)
+                }
+
+                Toggle(isOn: Binding(
+                    get: { settings.modifierHoldSnap },
+                    set: { settings.modifierHoldSnap = $0; saveSettings() }
+                )) {
+                    Text("Hold Control or fn key while dragging window to reveal zones anywhere")
+                        .font(.callout)
                 }
             }
         }
@@ -267,14 +284,106 @@ public struct PreferencesView: View {
         }
     }
 
-    // MARK: - Tab 3: Behavior Content
+    // MARK: - Tab 3: Workspaces (Profiles) Content
+    @ViewBuilder
+    private var workspacesContent: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            Text("Save your current desktop window layout as a profile and restore it anytime.")
+                .font(.callout)
+                .foregroundColor(.secondary)
+
+            HStack {
+                TextField("Workspace Name (e.g. Coding, Research)", text: $newWorkspaceName)
+                    .textFieldStyle(.roundedBorder)
+
+                Button("Save Current Setup") {
+                    let name = newWorkspaceName.trimmingCharacters(in: .whitespacesAndNewlines)
+                    let finalName = name.isEmpty ? "Workspace \(settings.savedWorkspaces.count + 1)" : name
+                    WindowManagerCoordinator.shared.saveCurrentWorkspace(name: finalName)
+                    settings = AppSettings.load()
+                    newWorkspaceName = ""
+                }
+                .buttonStyle(.borderedProminent)
+            }
+
+            // Live detected windows badge preview
+            let detected = WindowManagerCoordinator.shared.getDetectedOnScreenWindows()
+            if !detected.isEmpty {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Currently Visible on Display (\(detected.count)):")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 6) {
+                            ForEach(0..<detected.count, id: \.self) { i in
+                                let target = detected[i].target
+                                Text(target.appName ?? "App")
+                                    .font(.system(.caption, design: .monospaced))
+                                    .fontWeight(.medium)
+                                    .padding(.horizontal, 6)
+                                    .padding(.vertical, 3)
+                                    .background(Color.accentColor.opacity(0.12))
+                                    .cornerRadius(5)
+                            }
+                        }
+                    }
+                }
+            }
+
+            Divider()
+
+            if settings.savedWorkspaces.isEmpty {
+                Text("No saved workspaces yet. Arrange your windows on screen and click 'Save Current Setup'.")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                    .padding(.top, 10)
+            } else {
+                ScrollView(.vertical, showsIndicators: false) {
+                    VStack(spacing: 8) {
+                        ForEach(settings.savedWorkspaces) { ws in
+                            HStack {
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text(ws.name)
+                                        .font(.body)
+                                        .fontWeight(.medium)
+                                    Text(ws.slots.map(\.appName).joined(separator: " • "))
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                }
+
+                                Spacer()
+
+                                Button("Restore") {
+                                    WindowManagerCoordinator.shared.restoreWorkspace(id: ws.id)
+                                }
+                                .buttonStyle(.bordered)
+
+                                Button(action: {
+                                    settings.savedWorkspaces.removeAll { $0.id == ws.id }
+                                    saveSettings()
+                                }) {
+                                    Image(systemName: "trash")
+                                        .foregroundColor(.secondary)
+                                }
+                                .buttonStyle(.plain)
+                            }
+                            .padding(10)
+                            .background(Color.primary.opacity(0.04))
+                            .cornerRadius(8)
+                        }
+                    }
+                }
+                .frame(maxHeight: 180)
+            }
+        }
+    }
+
+    // MARK: - Tab 4: Behavior Content
     @ViewBuilder
     private var behaviorContent: some View {
         VStack(alignment: .leading, spacing: 14) {
-            Toggle(isOn: Binding(
-                get: { LaunchAtLogin.isEnabled },
-                set: { LaunchAtLogin.setEnabled($0) }
-            )) {
+            Toggle(isOn: $launchAtLogin) {
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Launch Wrangler at login")
                         .font(.body)
@@ -282,6 +391,12 @@ public struct PreferencesView: View {
                     Text("Starts Wrangler automatically in the background when you log in.")
                         .font(.caption)
                         .foregroundColor(.secondary)
+                }
+            }
+            .onChange(of: launchAtLogin) { newValue in
+                LaunchAtLogin.setEnabled(newValue)
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
+                    launchAtLogin = LaunchAtLogin.isEnabled
                 }
             }
 
@@ -312,6 +427,22 @@ public struct PreferencesView: View {
                         .font(.body)
                         .fontWeight(.medium)
                     Text("Pressing Left or Right Half repeatedly cycles: ½ → ⅔ → ⅓ → ½.")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+            }
+
+            Divider()
+
+            Toggle(isOn: Binding(
+                get: { settings.shakeToSummon },
+                set: { settings.shakeToSummon = $0; saveSettings() }
+            )) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Shake cursor to summon grid HUD")
+                        .font(.body)
+                        .fontWeight(.medium)
+                    Text("Quickly shaking your mouse cursor activates the grid overlay at cursor location.")
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }
@@ -408,7 +539,7 @@ public struct PreferencesView: View {
         }
     }
 
-    // MARK: - Tab 4: Shortcuts Content with Interactive Recording
+    // MARK: - Tab 5: Shortcuts Content with Interactive Recording
     @ViewBuilder
     private var shortcutsContent: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -416,13 +547,29 @@ public struct PreferencesView: View {
                 .font(.callout)
                 .foregroundColor(.secondary)
 
-            VStack(spacing: 8) {
+            VStack(spacing: 7) {
                 recorderRow(id: "overlay", label: "Show Grid Overlay", shortcut: settings.overlayShortcut)
                 recorderRow(id: "maximize", label: "Maximize Window", shortcut: settings.maximizeShortcut)
                 recorderRow(id: "autoTile", label: "Auto-Tile Active Display", shortcut: settings.autoTileShortcut)
+                recorderRow(id: "swap", label: "Swap Front Windows", shortcut: settings.swapShortcut)
                 recorderRow(id: "nextDisplay", label: "Move to Next Display", shortcut: settings.nextDisplayShortcut)
                 recorderRow(id: "prevDisplay", label: "Move to Previous Display", shortcut: settings.prevDisplayShortcut)
                 recorderRow(id: "undo", label: "Undo Last Snap", shortcut: settings.undoShortcut)
+            }
+
+            Divider()
+
+            Toggle(isOn: Binding(
+                get: { settings.enableNumpadHotkeys },
+                set: {
+                    settings.enableNumpadHotkeys = $0
+                    saveSettings()
+                    GlobalHotKeyManager.shared.registerFromSettings(settings)
+                }
+            )) {
+                Text("Enable Numpad 1–9 shortcuts (⌃ ⌥ Numpad 1..9 for spatial snapping)")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
             }
         }
     }
@@ -462,7 +609,7 @@ public struct PreferencesView: View {
                     }
                 }
                 .padding(.horizontal, 10)
-                .padding(.vertical, 5)
+                .padding(.vertical, 4)
                 .background(
                     isRecording
                         ? Color.accentColor.opacity(0.18)
@@ -478,7 +625,7 @@ public struct PreferencesView: View {
         }
     }
 
-    // MARK: - Tab 5: About Content
+    // MARK: - Tab 6: About Content
     @ViewBuilder
     private var aboutContent: some View {
         VStack(alignment: .leading, spacing: 14) {
@@ -547,7 +694,7 @@ public struct PreferencesView: View {
         case .shortcuts:
             settings.resetShortcuts()
             GlobalHotKeyManager.shared.registerFromSettings(settings)
-        case .about:
+        case .workspaces, .about:
             break
         }
         saveSettings()
@@ -572,6 +719,8 @@ public struct PreferencesView: View {
                     self.settings.maximizeShortcut = shortcut
                 case "autoTile":
                     self.settings.autoTileShortcut = shortcut
+                case "swap":
+                    self.settings.swapShortcut = shortcut
                 case "nextDisplay":
                     self.settings.nextDisplayShortcut = shortcut
                 case "prevDisplay":

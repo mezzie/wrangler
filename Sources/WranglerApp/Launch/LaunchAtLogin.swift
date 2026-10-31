@@ -4,17 +4,20 @@ import ServiceManagement
 @MainActor
 public enum LaunchAtLogin {
     public static var isEnabled: Bool {
-        return SMAppService.mainApp.status == .enabled
+        let status = SMAppService.mainApp.status
+        return status == .enabled || status == .requiresApproval
     }
 
     public static func setEnabled(_ enable: Bool) {
         do {
             if enable {
-                if SMAppService.mainApp.status != .enabled {
+                let status = SMAppService.mainApp.status
+                if status != .enabled && status != .requiresApproval {
                     try SMAppService.mainApp.register()
                 }
             } else {
-                if SMAppService.mainApp.status == .enabled {
+                let status = SMAppService.mainApp.status
+                if status == .enabled || status == .requiresApproval {
                     try SMAppService.mainApp.unregister()
                 }
             }

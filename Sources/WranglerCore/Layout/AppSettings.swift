@@ -13,6 +13,10 @@ public struct AppSettings: Codable, Equatable, Sendable {
     public var snapTriggerThreshold: CGFloat
     public var appLanguage: String
     public var ignoredBundleIDs: [String]
+    public var savedWorkspaces: [SavedWorkspace]
+    public var shakeToSummon: Bool
+    public var modifierHoldSnap: Bool
+    public var enableNumpadHotkeys: Bool
 
     // Customizable Shortcuts
     public var overlayShortcut: CustomShortcut
@@ -21,6 +25,7 @@ public struct AppSettings: Codable, Equatable, Sendable {
     public var nextDisplayShortcut: CustomShortcut
     public var prevDisplayShortcut: CustomShortcut
     public var undoShortcut: CustomShortcut
+    public var swapShortcut: CustomShortcut
 
     public init(
         columns: Int = 4,
@@ -35,12 +40,17 @@ public struct AppSettings: Codable, Equatable, Sendable {
         snapTriggerThreshold: CGFloat = 25,
         appLanguage: String = "system",
         ignoredBundleIDs: [String] = ["com.apple.calculator", "com.1password.1password"],
+        savedWorkspaces: [SavedWorkspace] = [],
+        shakeToSummon: Bool = false,
+        modifierHoldSnap: Bool = true,
+        enableNumpadHotkeys: Bool = true,
         overlayShortcut: CustomShortcut = .defaultOverlay,
         maximizeShortcut: CustomShortcut = .defaultMaximize,
         autoTileShortcut: CustomShortcut = .defaultAutoTile,
         nextDisplayShortcut: CustomShortcut = .defaultNextDisplay,
         prevDisplayShortcut: CustomShortcut = .defaultPrevDisplay,
-        undoShortcut: CustomShortcut = .defaultUndo
+        undoShortcut: CustomShortcut = .defaultUndo,
+        swapShortcut: CustomShortcut = .defaultSwap
     ) {
         self.columns = max(2, min(columns, 16))
         self.rows = max(1, min(rows, 16))
@@ -54,12 +64,17 @@ public struct AppSettings: Codable, Equatable, Sendable {
         self.snapTriggerThreshold = max(10, min(snapTriggerThreshold, 100))
         self.appLanguage = appLanguage
         self.ignoredBundleIDs = ignoredBundleIDs
+        self.savedWorkspaces = savedWorkspaces
+        self.shakeToSummon = shakeToSummon
+        self.modifierHoldSnap = modifierHoldSnap
+        self.enableNumpadHotkeys = enableNumpadHotkeys
         self.overlayShortcut = overlayShortcut
         self.maximizeShortcut = maximizeShortcut
         self.autoTileShortcut = autoTileShortcut
         self.nextDisplayShortcut = nextDisplayShortcut
         self.prevDisplayShortcut = prevDisplayShortcut
         self.undoShortcut = undoShortcut
+        self.swapShortcut = swapShortcut
     }
 
     public static let `default` = AppSettings()
@@ -110,6 +125,7 @@ public struct AppSettings: Codable, Equatable, Sendable {
         self.nextDisplayShortcut = .defaultNextDisplay
         self.prevDisplayShortcut = .defaultPrevDisplay
         self.undoShortcut = .defaultUndo
+        self.swapShortcut = .defaultSwap
     }
 
     public var asGridConfig: GridConfig {

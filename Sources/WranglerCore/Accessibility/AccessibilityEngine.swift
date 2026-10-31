@@ -317,4 +317,175 @@ public final class AccessibilityEngine: @unchecked Sendable {
 
         return results
     }
+
+    /// Swaps coordinates of the two topmost windows on the active display
+    public func swapTopTwoWindows(on screen: ScreenInfo) throws {
+        let windows = getTopOnScreenWindows(on: screen)
+        guard windows.count >= 2 else {
+            throw AccessibilityError.noFocusedWindow
+        }
+
+        let win1 = windows[0]
+        let win2 = windows[1]
+
+        let frame1 = win1.target.frame
+        let frame2 = win2.target.frame
+
+        try setWindowFrame(frame2, element: win1.element)
+        try setWindowFrame(frame1, element: win2.element)
+    }
+
+    /// Returns all standard resizable windows for a specific application
+    public func getAllResizableWindows(for app: NSRunningApplication) -> [AXUIElement] {
+        guard Self.isTrusted() else { return [] }
+        let appElement = AXUIElementCreateApplication(app.processIdentifier)
+        var windowsValue: AnyObject?
+        guard AXUIElementCopyAttributeValue(appElement, kAXWindowsAttribute as CFString, &windowsValue) == .success,
+              let windows = windowsValue as? [AXUIElement] else {
+            return []
+        }
+        return windows.filter { isWindowResizable($0) }
+    }
+
+    /// Finds the primary resizable main window for an application (never a popup or utility dialog)
+    public func getMainWindowElement(for targetApp: NSRunningApplication) throws -> (element: AXUIElement, frame: CGRect) {
+        guard Self.isTrusted() else {
+            throw AccessibilityError.permissionDenied
+        }
+
+        let appElement = AXUIElementCreateApplication(targetApp.processIdentifier)
+
+        // 1. Primary check: kAXMainWindowAttribute
+        var mainVal: AnyObject?
+        if AXUIElementCopyAttributeValue(appElement, kAXMainWindowAttribute as CFString, &mainVal) == .success,
+           let win = mainVal as! AXUIElement?,
+           isWindowResizable(win),
+           let frame = try? getWindowFrame(element: win),
+           frame.width >= 350 && frame.height >= 250 {
+            return (win, frame)
+        }
+
+        // 2. Focused window if standard resizable
+        var focusedVal: AnyObject?
+        if AXUIElementCopyAttributeValue(appElement, kAXFocusedWindowAttribute as CFString, &focusedVal) == .success,
+           let win = focusedVal as! AXUIElement?,
+           isWindowResizable(win),
+           let frame = try? getWindowFrame(element: win),
+           frame.width >= 350 && frame.height >= 250 {
+            return (win, frame)
+        }
+
+        // 3. Fallback: Search windows list for first standard resizable window
+        var windowsValue: AnyObject?
+        if AXUIElementCopyAttributeValue(appElement, kAXWindowsAttribute as CFString, &windowsValue) == .success,
+           let windows = windowsValue as? [AXUIElement] {
+            for win in windows where isWindowResizable(win) {
+                if let frame = try? getWindowFrame(element: win),
+                   frame.width >= 350 && frame.height >= 250 {
+                    return (win, frame)
+                }
+            }
+        }
+
+        throw AccessibilityError.noFocusedWindow
+    }
+
+    /// Captures only the topmost un-occluded on-screen windows on the active display in true visual Z-order
+    public func getTopOnScreenWindows(on screen: ScreenInfo) -> [(element: AXUIElement, target: WindowTarget)] {
+        guard Self.isTrusted() else { return [] }
+
+        guard let list = CGWindowListCopyWindowInfo([.optionOnScreenOnly, .excludeDesktopElements], kCGNullWindowID) as? [[String: Any]] else {
+            return []
+        }
+
+        let myPID = ProcessInfo.processInfo.processIdentifier
+        let settings = AppSettings.load()
+
+        var results: [(element: AXUIElement, target: WindowTarget)] = []
+        var coveredUnion: [CGRect] = []
+        var usedWindowPointers: Set<CFHashCode> = []
+
+        for info in list {
+            guard let layer = info[kCGWindowLayer as String] as? Int, layer == 0,
+                  let pid = info[kCGWindowOwnerPID as String] as? pid_t, pid != myPID,
+                  let owner = info[kCGWindowOwnerName as String] as? String,
+                  let app = NSRunningApplication(processIdentifier: pid),
+                  app.activationPolicy == .regular,
+                  !(app.bundleIdentifier.map { settings.ignoredBundleIDs.contains($0) } ?? false) else {
+                continue
+            }
+
+            let boundsDict = info[kCGWindowBounds as String] as? [String: Any] ?? [:]
+            let x = boundsDict["X"] as? CGFloat ?? 0
+            let y = boundsDict["Y"] as? CGFloat ?? 0
+            let w = boundsDict["Width"] as? CGFloat ?? 0
+            let h = boundsDict["Height"] as? CGFloat ?? 0
+            let title = info[kCGWindowName as String] as? String
+
+            // Must be standard resizable window size (filters out tiny dialogs and popovers)
+            guard w >= 350 && h >= 250 else { continue }
+            let cgFrame = CGRect(x: x, y: y, width: w, height: h)
+
+            // Check intersection with active display's visible bounds
+            let screenInter = screen.axVisibleFrame.intersection(cgFrame)
+            guard !screenInter.isNull && screenInter.width >= 200 && screenInter.height >= 150 else {
+                continue
+            }
+
+            // Calculate unoccluded area to verify window is ACTUALLY visible on top
+            var unoccluded = screenInter.width * screenInter.height
+            for cov in coveredUnion {
+                let overlap = screenInter.intersection(cov)
+                if !overlap.isNull {
+                    unoccluded -= (overlap.width * overlap.height)
+                }
+            }
+
+            let unoccludedRatio = max(0, unoccluded) / (screenInter.width * screenInter.height)
+            // Window must have at least 25% visible un-occluded surface to be considered on top
+            guard unoccludedRatio >= 0.25 else {
+                continue
+            }
+
+            // Find matching AXUIElement for this specific window
+            let appElement = AXUIElementCreateApplication(pid)
+            var windowsValue: AnyObject?
+            guard AXUIElementCopyAttributeValue(appElement, kAXWindowsAttribute as CFString, &windowsValue) == .success,
+                  let axWindows = windowsValue as? [AXUIElement] else {
+                continue
+            }
+
+            // Match by frame proximity to find the exact AXUIElement
+            var matchedAxWin: AXUIElement? = nil
+            for axWin in axWindows {
+                if let axFrame = try? getWindowFrame(element: axWin) {
+                    if abs(axFrame.origin.x - x) < 15 && abs(axFrame.origin.y - y) < 15 {
+                        matchedAxWin = axWin
+                        break
+                    }
+                }
+            }
+
+            guard let targetElement = matchedAxWin ?? axWindows.first(where: { isWindowResizable($0) }) else {
+                continue
+            }
+
+            let ptrHash = CFHash(targetElement)
+            guard !usedWindowPointers.contains(ptrHash) else { continue }
+            usedWindowPointers.insert(ptrHash)
+
+            coveredUnion.append(screenInter)
+
+            let target = WindowTarget(
+                pid: pid,
+                appName: app.localizedName ?? owner,
+                bundleID: app.bundleIdentifier,
+                windowTitle: title,
+                frame: cgFrame
+            )
+            results.append((element: targetElement, target: target))
+        }
+
+        return results
+    }
 }
