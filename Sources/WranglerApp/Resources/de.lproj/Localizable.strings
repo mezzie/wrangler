@@ -1,0 +1,55 @@
+/* Menu Bar & Commands */
+"Show Grid Overlay" = "Raster-Overlay anzeigen";
+"Auto-Tile Active Display" = "Aktiven Bildschirm automatisch anordnen";
+"Move to Next Display" = "Auf nächsten Bildschirm verschieben";
+"Move to Previous Display" = "Auf vorherigen Bildschirm verschieben";
+"Snap Presets" = "Layout-Vorgaben";
+"Maximize" = "Maximieren";
+"Left Half" = "Linke Hälfte";
+"Right Half" = "Rechte Hälfte";
+"Top Half" = "Obere Hälfte";
+"Bottom Half" = "Untere Hälfte";
+"Center" = "Zentrieren";
+"Undo Last Snap" = "Letztes Andocken rückgängig machen";
+"Preferences..." = "Einstellungen...";
+"Check for Updates..." = "Nach Updates suchen...";
+"Check Accessibility Permissions..." = "Bedienungshilfen-Berechtigungen prüfen...";
+"Quit Wrangler" = "Wrangler beenden";
+
+/* HUD Overlay */
+"Snap: %@" = "Andocken: %@";
+"Auto-Tile" = "Auto-Kacheln";
+"Next Screen" = "Nächster Monitor";
+"Undo" = "Rückgängig";
+"Left ½" = "Links ½";
+"Right ½" = "Rechts ½";
+"Max" = "Max";
+
+/* Preferences Sections */
+"Snap Zones" = "Andockzonen";
+"Grid & Gaps" = "Raster & Abstände";
+"Behavior" = "Verhalten";
+"Shortcuts" = "Tastaturkürzel";
+"About & Updates" = "Über Wrangler";
+
+/* Preferences Content */
+"Enable Drag-to-Snap Zones" = "Zieh-Andockzonen aktivieren";
+"Drag a window by its title bar to screen edges or corners to snap into template tiles." = "Ziehen Sie ein Fenster an der Titelleiste an den Bildschirmrand, um es an Vorlagen anzudocken.";
+"Ultrawide Template Layout:" = "Ultrawide-Vorlage:";
+"50% / 50% Split (Wide Screens)" = "50% / 50% Geteilt (Breitbild)";
+"Three Columns (33% / 33% / 33%)" = "Drei Spalten (33% / 33% / 33%)";
+"Ultrawide Center Focus (25% | 50% | 25%)" = "Zentrum-Fokus (25% | 50% | 25%)";
+"Edge Trigger:" = "Randempfindlichkeit:";
+"Configure default grid dimensions and spacing for overlay snaps." = "Standard-Rasterdimensionen und Abstände für Fensteranordnungen anpassen.";
+"Columns:" = "Spalten:";
+"Rows:" = "Zeilen:";
+"Inner Gap:" = "Fensterabstand:";
+"Outer Margin:" = "Bildschirmrand:";
+"Avoid macOS Stage Manager strip" = "macOS Stage Manager-Leiste aussparen";
+"Automatically leaves room on screen edges when Stage Manager thumbnails are visible." = "Spart automatisch Platz am Bildschirmrand aus, wenn die Stage Manager-Leiste aktiv ist.";
+"Cycle window sizes on repeated shortcut" = "Fenstergrößen bei Wiederholung durchwechseln";
+"Pressing Left or Right Half repeatedly cycles: ½ → ⅔ → ⅓ → ½." = "Mehrmaliges Drücken von Linke/Rechte Hälfte wechselt: ½ → ⅔ → ⅓ → ½.";
+"Maximize Window" = "Fenster maximieren";
+"View on GitHub" = "Auf GitHub ansehen";
+"The open-source window grid manager for macOS" = "Der Open-Source Fenstermanager für macOS";
+"Free and open-source under the MIT License." = "Frei und Open Source unter der MIT-Lizenz.";

@@ -3,6 +3,7 @@ import PackageDescription
 
 let package = Package(
     name: "Wrangler",
+    defaultLocalization: "en",
     platforms: [
         .macOS(.v13)
     ],
@@ -29,7 +30,10 @@ let package = Package(
         .executableTarget(
             name: "WranglerApp",
             dependencies: ["WranglerCore"],
-            path: "Sources/WranglerApp"
+            path: "Sources/WranglerApp",
+            resources: [
+                .process("Resources")
+            ]
         ),
         .executableTarget(
             name: "WranglerCLI",

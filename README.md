@@ -167,6 +167,7 @@ Contributions, bug reports, and feature requests are welcome!
 
 ---
 
-## 📄 License
+## 📄 License & Changelog
 
-Distributed under the **MIT License**. See [LICENSE](LICENSE) for more information.
+- See [CHANGELOG.md](CHANGELOG.md) for release notes and version history.
+- Distributed under the **MIT License**. See [LICENSE](LICENSE) for more information.

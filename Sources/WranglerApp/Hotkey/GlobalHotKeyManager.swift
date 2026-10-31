@@ -1,5 +1,6 @@
 import AppKit
 import Carbon
+import WranglerCore
 
 public final class GlobalHotKeyManager {
     public static let shared = GlobalHotKeyManager()
@@ -12,13 +13,38 @@ public final class GlobalHotKeyManager {
     public var onPrevDisplayPressed: (() -> Void)?
     public var onAutoTilePressed: (() -> Void)?
     public var onMaximizePressed: (() -> Void)?
+    public var onUndoPressed: (() -> Void)?
 
     private init() {}
 
-    /// Registers standard global hotkeys
-    public func registerDefaultHotKeys() {
-        unregisterAll()
+    /// Registers all global hotkeys from current AppSettings
+    public func registerFromSettings(_ settings: AppSettings = .load()) {
+        unregisterAllHotKeys()
 
+        if eventHandler == nil {
+            installCarbonHandler()
+        }
+
+        // 1. Overlay
+        registerSingle(id: 1, shortcut: settings.overlayShortcut)
+
+        // 2. Next Display
+        registerSingle(id: 2, shortcut: settings.nextDisplayShortcut)
+
+        // 3. Prev Display
+        registerSingle(id: 3, shortcut: settings.prevDisplayShortcut)
+
+        // 4. Auto-Tile
+        registerSingle(id: 4, shortcut: settings.autoTileShortcut)
+
+        // 5. Maximize
+        registerSingle(id: 5, shortcut: settings.maximizeShortcut)
+
+        // 6. Undo
+        registerSingle(id: 6, shortcut: settings.undoShortcut)
+    }
+
+    private func installCarbonHandler() {
         var eventType = EventTypeSpec(eventClass: OSType(kEventClassKeyboard), eventKind: UInt32(kEventHotKeyPressed))
         let selfPtr = Unmanaged.passUnretained(self).toOpaque()
 
@@ -48,8 +74,10 @@ public final class GlobalHotKeyManager {
                     manager.onPrevDisplayPressed?()
                 case 4:
                     manager.onAutoTilePressed?()
-                case 5, 6:
+                case 5:
                     manager.onMaximizePressed?()
+                case 6:
+                    manager.onUndoPressed?()
                 default:
                     break
                 }
@@ -61,36 +89,17 @@ public final class GlobalHotKeyManager {
             &eventHandler
         )
 
-        guard status == noErr else {
+        if status != noErr {
             print("Failed to install Carbon event handler: \(status)")
-            return
         }
-
-        // 1. Option + Space -> Show Grid Overlay
-        registerSingleHotKey(id: 1, keyCode: 49, carbonModifiers: UInt32(optionKey))
-
-        // 2. Control + Option + Right Arrow (124) -> Next Display
-        registerSingleHotKey(id: 2, keyCode: 124, carbonModifiers: UInt32(controlKey | optionKey))
-
-        // 3. Control + Option + Left Arrow (123) -> Previous Display
-        registerSingleHotKey(id: 3, keyCode: 123, carbonModifiers: UInt32(controlKey | optionKey))
-
-        // 4. Control + Option + T (17) -> Auto-Tile Active Display (AeroSpace style)
-        registerSingleHotKey(id: 4, keyCode: 17, carbonModifiers: UInt32(controlKey | optionKey))
-
-        // 5. Control + Option + Return (36) -> Maximize Window
-        registerSingleHotKey(id: 5, keyCode: 36, carbonModifiers: UInt32(controlKey | optionKey))
-
-        // 6. Control + Option + M (46) -> Maximize Window (letter shortcut)
-        registerSingleHotKey(id: 6, keyCode: 46, carbonModifiers: UInt32(controlKey | optionKey))
     }
 
-    private func registerSingleHotKey(id: UInt32, keyCode: UInt32, carbonModifiers: UInt32) {
+    private func registerSingle(id: UInt32, shortcut: CustomShortcut) {
         let hotKeyID = EventHotKeyID(signature: OSType(0x5752474C), id: id) // "WRGL"
         var hotKeyRef: EventHotKeyRef?
         let regStatus = RegisterEventHotKey(
-            keyCode,
-            carbonModifiers,
+            shortcut.keyCode,
+            shortcut.carbonModifiers,
             hotKeyID,
             GetApplicationEventTarget(),
             0,
@@ -101,12 +110,15 @@ public final class GlobalHotKeyManager {
         }
     }
 
-    public func unregisterAll() {
+    public func unregisterAllHotKeys() {
         for (_, ref) in registeredHotKeys {
             UnregisterEventHotKey(ref)
         }
         registeredHotKeys.removeAll()
+    }
 
+    public func unregisterAll() {
+        unregisterAllHotKeys()
         if let handler = eventHandler {
             RemoveEventHandler(handler)
             self.eventHandler = nil

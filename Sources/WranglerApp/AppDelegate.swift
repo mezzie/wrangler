@@ -38,7 +38,12 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
                 WindowManagerCoordinator.shared.snapFocusedWindow(preset: "full")
             }
         }
-        GlobalHotKeyManager.shared.registerDefaultHotKeys()
+        GlobalHotKeyManager.shared.onUndoPressed = {
+            Task { @MainActor in
+                WindowManagerCoordinator.shared.undoLastSnap()
+            }
+        }
+        GlobalHotKeyManager.shared.registerFromSettings()
 
         // Start drag-to-snap zones monitor
         SnapZoneMonitor.shared.start()

@@ -24,6 +24,8 @@ public enum PrefsSection: String, CaseIterable, Identifiable {
 public struct PreferencesView: View {
     @State private var settings = AppSettings.load()
     @State private var selectedSection: PrefsSection = .snapZones
+    @State private var recordingKey: String? = nil
+    @State private var keyMonitor: Any? = nil
 
     public init() {}
 
@@ -32,7 +34,10 @@ public struct PreferencesView: View {
             // MARK: - Left Navigation Sidebar
             VStack(alignment: .leading, spacing: 4) {
                 ForEach(PrefsSection.allCases) { section in
-                    Button(action: { selectedSection = section }) {
+                    Button(action: {
+                        stopRecording()
+                        selectedSection = section
+                    }) {
                         HStack(spacing: 10) {
                             Image(systemName: section.icon)
                                 .font(.system(size: 13, weight: .medium))
@@ -70,7 +75,7 @@ public struct PreferencesView: View {
 
             // MARK: - Main Content Area (Right)
             VStack(alignment: .leading, spacing: 18) {
-                // Section Title
+                // Section Title & Top Controls
                 HStack {
                     Text(selectedSection.rawValue)
                         .font(.title2)
@@ -96,22 +101,35 @@ public struct PreferencesView: View {
 
                 Spacer(minLength: 0)
 
-                // Footer
+                // Footer Bar with Restore Defaults per Tab
                 Divider()
                 HStack {
                     Text("Wrangler v\(UpdateManager.currentVersion)")
                         .font(.caption)
                         .foregroundColor(.secondary)
+
                     Spacer()
+
+                    if selectedSection != .about {
+                        Button("Restore Defaults") {
+                            restoreCurrentTabDefaults()
+                        }
+                        .font(.caption)
+                        .buttonStyle(.plain)
+                        .foregroundColor(.accentColor)
+                    }
                 }
             }
             .padding(24)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         }
-        .frame(width: 680, height: 440)
+        .frame(width: 690, height: 460)
+        .onDisappear {
+            stopRecording()
+        }
     }
 
-    // MARK: - Snap Zones Content
+    // MARK: - Tab 1: Snap Zones Content
     @ViewBuilder
     private var snapZonesContent: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -169,7 +187,7 @@ public struct PreferencesView: View {
         }
     }
 
-    // MARK: - Grid Content
+    // MARK: - Tab 2: Grid Content
     @ViewBuilder
     private var gridContent: some View {
         VStack(alignment: .leading, spacing: 14) {
@@ -249,7 +267,7 @@ public struct PreferencesView: View {
         }
     }
 
-    // MARK: - Behavior Content
+    // MARK: - Tab 3: Behavior Content
     @ViewBuilder
     private var behaviorContent: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -282,23 +300,113 @@ public struct PreferencesView: View {
                         .foregroundColor(.secondary)
                 }
             }
+
+            Divider()
+
+            VStack(alignment: .leading, spacing: 6) {
+                Text("App Language:")
+                    .font(.body)
+                    .fontWeight(.medium)
+
+                HStack {
+                    Picker("", selection: Binding(
+                        get: { settings.appLanguage },
+                        set: {
+                            settings.appLanguage = $0
+                            saveSettings()
+                            applyLanguagePreference($0)
+                        }
+                    )) {
+                        Text("System Default").tag("system")
+                        Text("English").tag("en")
+                        Text("日本語 (Japanese)").tag("ja")
+                        Text("简体中文 (Simplified Chinese)").tag("zh-Hans")
+                        Text("Deutsch (German)").tag("de")
+                        Text("Español (Spanish)").tag("es")
+                    }
+                    .labelsHidden()
+                    .pickerStyle(.menu)
+                    .frame(maxWidth: 220, alignment: .leading)
+
+                    Text("Takes effect on restart")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+            }
         }
     }
 
-    // MARK: - Shortcuts Content
+    // MARK: - Tab 4: Shortcuts Content with Interactive Recording
     @ViewBuilder
     private var shortcutsContent: some View {
-        VStack(spacing: 8) {
-            ShortcutRow(label: "Show Grid Overlay", shortcut: "⌥ Space")
-            ShortcutRow(label: "Maximize Window", shortcut: "⌃ ⌥ ↵  or  ⌃ ⌥ M")
-            ShortcutRow(label: "Auto-Tile Active Display", shortcut: "⌃ ⌥ T")
-            ShortcutRow(label: "Move to Next Display", shortcut: "⌃ ⌥ →")
-            ShortcutRow(label: "Move to Previous Display", shortcut: "⌃ ⌥ ←")
-            ShortcutRow(label: "Undo Last Snap", shortcut: "⌥ ⌘ Z")
+        VStack(alignment: .leading, spacing: 10) {
+            Text("Click any shortcut badge to record your own custom keys. Press ESC to cancel.")
+                .font(.callout)
+                .foregroundColor(.secondary)
+
+            VStack(spacing: 8) {
+                recorderRow(id: "overlay", label: "Show Grid Overlay", shortcut: settings.overlayShortcut)
+                recorderRow(id: "maximize", label: "Maximize Window", shortcut: settings.maximizeShortcut)
+                recorderRow(id: "autoTile", label: "Auto-Tile Active Display", shortcut: settings.autoTileShortcut)
+                recorderRow(id: "nextDisplay", label: "Move to Next Display", shortcut: settings.nextDisplayShortcut)
+                recorderRow(id: "prevDisplay", label: "Move to Previous Display", shortcut: settings.prevDisplayShortcut)
+                recorderRow(id: "undo", label: "Undo Last Snap", shortcut: settings.undoShortcut)
+            }
         }
     }
 
-    // MARK: - About Content
+    @ViewBuilder
+    private func recorderRow(id: String, label: String, shortcut: CustomShortcut) -> some View {
+        let isRecording = (recordingKey == id)
+
+        HStack {
+            Text(label)
+                .font(.body)
+                .foregroundColor(.primary)
+
+            Spacer()
+
+            Button(action: {
+                if isRecording {
+                    stopRecording()
+                } else {
+                    startRecording(id)
+                }
+            }) {
+                HStack(spacing: 4) {
+                    if isRecording {
+                        Circle()
+                            .fill(Color.red)
+                            .frame(width: 6, height: 6)
+                        Text("Type keys...")
+                            .font(.system(.subheadline, design: .monospaced))
+                            .fontWeight(.semibold)
+                            .foregroundColor(.accentColor)
+                    } else {
+                        Text(shortcut.displayString)
+                            .font(.system(.subheadline, design: .monospaced))
+                            .fontWeight(.medium)
+                            .foregroundColor(.primary)
+                    }
+                }
+                .padding(.horizontal, 10)
+                .padding(.vertical, 5)
+                .background(
+                    isRecording
+                        ? Color.accentColor.opacity(0.18)
+                        : Color.primary.opacity(0.08)
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 6)
+                        .strokeBorder(isRecording ? Color.accentColor : Color.clear, lineWidth: 1.5)
+                )
+                .cornerRadius(6)
+            }
+            .buttonStyle(.plain)
+        }
+    }
+
+    // MARK: - Tab 5: About Content
     @ViewBuilder
     private var aboutContent: some View {
         VStack(alignment: .leading, spacing: 14) {
@@ -341,28 +449,79 @@ public struct PreferencesView: View {
         }
     }
 
+    // MARK: - Logic & Key Recording
+
     private func saveSettings() {
         settings.save()
     }
-}
 
-private struct ShortcutRow: View {
-    let label: String
-    let shortcut: String
-
-    var body: some View {
-        HStack {
-            Text(label)
-                .font(.body)
-                .foregroundColor(.primary)
-            Spacer()
-            Text(shortcut)
-                .font(.system(.subheadline, design: .monospaced))
-                .fontWeight(.medium)
-                .padding(.horizontal, 8)
-                .padding(.vertical, 4)
-                .background(Color.primary.opacity(0.08))
-                .cornerRadius(5)
+    private func applyLanguagePreference(_ lang: String) {
+        if lang == "system" {
+            UserDefaults.standard.removeObject(forKey: "AppleLanguages")
+        } else {
+            UserDefaults.standard.set([lang], forKey: "AppleLanguages")
         }
+    }
+
+    private func restoreCurrentTabDefaults() {
+        switch selectedSection {
+        case .snapZones:
+            settings.resetSnapZones()
+        case .grid:
+            settings.resetGridAndGaps()
+        case .behavior:
+            settings.resetBehavior()
+        case .shortcuts:
+            settings.resetShortcuts()
+            GlobalHotKeyManager.shared.registerFromSettings(settings)
+        case .about:
+            break
+        }
+        saveSettings()
+    }
+
+    private func startRecording(_ key: String) {
+        stopRecording()
+        recordingKey = key
+
+        keyMonitor = NSEvent.addLocalMonitorForEvents(matching: [.keyDown]) { event in
+            // ESC key cancels recording
+            if event.keyCode == 53 {
+                self.stopRecording()
+                return nil
+            }
+
+            if let shortcut = CustomShortcut.from(event: event) {
+                switch key {
+                case "overlay":
+                    self.settings.overlayShortcut = shortcut
+                case "maximize":
+                    self.settings.maximizeShortcut = shortcut
+                case "autoTile":
+                    self.settings.autoTileShortcut = shortcut
+                case "nextDisplay":
+                    self.settings.nextDisplayShortcut = shortcut
+                case "prevDisplay":
+                    self.settings.prevDisplayShortcut = shortcut
+                case "undo":
+                    self.settings.undoShortcut = shortcut
+                default:
+                    break
+                }
+                self.saveSettings()
+                GlobalHotKeyManager.shared.registerFromSettings(self.settings)
+                self.stopRecording()
+                return nil
+            }
+            return event
+        }
+    }
+
+    private func stopRecording() {
+        if let monitor = keyMonitor {
+            NSEvent.removeMonitor(monitor)
+            keyMonitor = nil
+        }
+        recordingKey = nil
     }
 }

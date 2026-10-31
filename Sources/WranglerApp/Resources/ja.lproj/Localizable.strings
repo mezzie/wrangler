@@ -1,0 +1,55 @@
+/* Menu Bar & Commands */
+"Show Grid Overlay" = "グリッドオーバーレイを表示";
+"Auto-Tile Active Display" = "ディスプレイを自動整列";
+"Move to Next Display" = "次のディスプレイに移動";
+"Move to Previous Display" = "前のディスプレイに移動";
+"Snap Presets" = "スナッププリセット";
+"Maximize" = "最大化";
+"Left Half" = "左半分";
+"Right Half" = "右半分";
+"Top Half" = "上半分";
+"Bottom Half" = "下半分";
+"Center" = "中央";
+"Undo Last Snap" = "前回のスナップを取り消す";
+"Preferences..." = "設定...";
+"Check for Updates..." = "アップデートを確認...";
+"Check Accessibility Permissions..." = "アクセシビリティ権限を確認...";
+"Quit Wrangler" = "Wranglerを終了";
+
+/* HUD Overlay */
+"Snap: %@" = "スナップ: %@";
+"Auto-Tile" = "自動整列";
+"Next Screen" = "次の画面";
+"Undo" = "元に戻す";
+"Left ½" = "左 ½";
+"Right ½" = "右 ½";
+"Max" = "最大化";
+
+/* Preferences Sections */
+"Snap Zones" = "スナップゾーン";
+"Grid & Gaps" = "グリッドと余白";
+"Behavior" = "動作設定";
+"Shortcuts" = "ショートカット";
+"About & Updates" = "Wranglerについて";
+
+/* Preferences Content */
+"Enable Drag-to-Snap Zones" = "ドラッグスナップゾーンを有効にする";
+"Drag a window by its title bar to screen edges or corners to snap into template tiles." = "ウィンドウのタイトルバーを画面の端や四隅にドラッグして、テンプレート枠にスナップします。";
+"Ultrawide Template Layout:" = "ウルトラワイド用テンプレート:";
+"50% / 50% Split (Wide Screens)" = "50% / 50% 左右分割 (ワイド画面)";
+"Three Columns (33% / 33% / 33%)" = "3カラム均等分割 (33% / 33% / 33%)";
+"Ultrawide Center Focus (25% | 50% | 25%)" = "中央フォーカス (25% | 50% | 25%)";
+"Edge Trigger:" = "端の反応距離:";
+"Configure default grid dimensions and spacing for overlay snaps." = "オーバーレイスナップ用の既定グリッドサイズと余白を設定します。";
+"Columns:" = "列数 (横):";
+"Rows:" = "行数 (縦):";
+"Inner Gap:" = "ウィンドウ間隔:";
+"Outer Margin:" = "画面余白:";
+"Avoid macOS Stage Manager strip" = "macOSステージマネージャの帯を避ける";
+"Automatically leaves room on screen edges when Stage Manager thumbnails are visible." = "ステージマネージャのサムネイルが表示されている場合、画面端に自動で余白を確保します。";
+"Cycle window sizes on repeated shortcut" = "ショートカット連続押しでサイズを切替";
+"Pressing Left or Right Half repeatedly cycles: ½ → ⅔ → ⅓ → ½." = "左半分または右半分ショートカットを連続で押すと、サイズが ½ → ⅔ → ⅓ → ½ の順に切り替わります。";
+"Maximize Window" = "ウィンドウを最大化";
+"View on GitHub" = "GitHubで見る";
+"The open-source window grid manager for macOS" = "macOS用オープンソース・ウィンドウグリッドマネージャ";
+"Free and open-source under the MIT License." = "MITライセンスに基づくフリー＆オープンソースソフトウェア。";

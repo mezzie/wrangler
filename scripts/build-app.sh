@@ -8,7 +8,7 @@ echo "==> Building Wrangler (release mode)..."
 cd "${ROOT_DIR}"
 swift build -c release --product Wrangler
 
-VERSION="${1:-1.4.0}"
+VERSION="${1:-1.5.0}"
 BIN_PATH="${ROOT_DIR}/.build/release/Wrangler"
 APP_DIR="${ROOT_DIR}/build/Wrangler.app"
 
@@ -18,6 +18,10 @@ mkdir -p "${APP_DIR}/Contents/MacOS"
 mkdir -p "${APP_DIR}/Contents/Resources"
 
 cp "${BIN_PATH}" "${APP_DIR}/Contents/MacOS/Wrangler"
+
+if [ -d "${ROOT_DIR}/Sources/WranglerApp/Resources" ]; then
+    cp -R "${ROOT_DIR}/Sources/WranglerApp/Resources/"* "${APP_DIR}/Contents/Resources/"
+fi
 
 cat << 'EOF' > "${APP_DIR}/Contents/Info.plist"
 <?xml version="1.0" encoding="UTF-8"?>

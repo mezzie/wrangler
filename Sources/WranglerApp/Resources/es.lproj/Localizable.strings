@@ -1,0 +1,55 @@
+/* Menu Bar & Commands */
+"Show Grid Overlay" = "Mostrar cuadrícula superpuesta";
+"Auto-Tile Active Display" = "Organizar pantalla automáticamente";
+"Move to Next Display" = "Mover a la siguiente pantalla";
+"Move to Previous Display" = "Mover a la pantalla anterior";
+"Snap Presets" = "Ajustes predefinidos";
+"Maximize" = "Maximizar";
+"Left Half" = "Mitad izquierda";
+"Right Half" = "Mitad derecha";
+"Top Half" = "Mitad superior";
+"Bottom Half" = "Mitad inferior";
+"Center" = "Centrar";
+"Undo Last Snap" = "Deshacer último ajuste";
+"Preferences..." = "Preferencias...";
+"Check for Updates..." = "Buscar actualizaciones...";
+"Check Accessibility Permissions..." = "Verificar permisos de accesibilidad...";
+"Quit Wrangler" = "Salir de Wrangler";
+
+/* HUD Overlay */
+"Snap: %@" = "Ajustar: %@";
+"Auto-Tile" = "Autoajustar";
+"Next Screen" = "Sig. pantalla";
+"Undo" = "Deshacer";
+"Left ½" = "Izquierda ½";
+"Right ½" = "Derecha ½";
+"Max" = "Max";
+
+/* Preferences Sections */
+"Snap Zones" = "Zonas de ajuste";
+"Grid & Gaps" = "Cuadrícula y espacios";
+"Behavior" = "Comportamiento";
+"Shortcuts" = "Atajos de teclado";
+"About & Updates" = "Acerca de Wrangler";
+
+/* Preferences Content */
+"Enable Drag-to-Snap Zones" = "Activar zonas de arrastre";
+"Drag a window by its title bar to screen edges or corners to snap into template tiles." = "Arrastra una ventana por su barra de título a los bordes o esquinas para ajustarla a la plantilla.";
+"Ultrawide Template Layout:" = "Plantilla para pantalla ultraancha:";
+"50% / 50% Split (Wide Screens)" = "División 50% / 50% (Pantallas anchas)";
+"Three Columns (33% / 33% / 33%)" = "Tres columnas (33% / 33% / 33%)";
+"Ultrawide Center Focus (25% | 50% | 25%)" = "Foco central ultraancho (25% | 50% | 25%)";
+"Edge Trigger:" = "Sensibilidad de borde:";
+"Configure default grid dimensions and spacing for overlay snaps." = "Configura dimensiones de cuadrícula y márgenes predeterminados.";
+"Columns:" = "Columnas:";
+"Rows:" = "Filas:";
+"Inner Gap:" = "Espacio entre ventanas:";
+"Outer Margin:" = "Margen exterior:";
+"Avoid macOS Stage Manager strip" = "Evitar barra de Stage Manager";
+"Automatically leaves room on screen edges when Stage Manager thumbnails are visible." = "Deja espacio en los bordes de la pantalla cuando las miniaturas de Stage Manager están visibles.";
+"Cycle window sizes on repeated shortcut" = "Alternar tamaños al repetir atajo";
+"Pressing Left or Right Half repeatedly cycles: ½ → ⅔ → ⅓ → ½." = "Al pulsar Mitad izquierda o derecha repetidamente alterna: ½ → ⅔ → ⅓ → ½.";
+"Maximize Window" = "Maximizar ventana";
+"View on GitHub" = "Ver en GitHub";
+"The open-source window grid manager for macOS" = "El gestor de ventanas de código abierto para macOS";
+"Free and open-source under the MIT License." = "Libre y de código abierto bajo la licencia MIT.";

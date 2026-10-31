@@ -11,6 +11,15 @@ public struct AppSettings: Codable, Equatable, Sendable {
     public var enableSnapZones: Bool
     public var snapZoneTemplate: SnapZoneTemplate
     public var snapTriggerThreshold: CGFloat
+    public var appLanguage: String
+
+    // Customizable Shortcuts
+    public var overlayShortcut: CustomShortcut
+    public var maximizeShortcut: CustomShortcut
+    public var autoTileShortcut: CustomShortcut
+    public var nextDisplayShortcut: CustomShortcut
+    public var prevDisplayShortcut: CustomShortcut
+    public var undoShortcut: CustomShortcut
 
     public init(
         columns: Int = 4,
@@ -22,7 +31,14 @@ public struct AppSettings: Codable, Equatable, Sendable {
         cycleRepeatedSnaps: Bool = true,
         enableSnapZones: Bool = true,
         snapZoneTemplate: SnapZoneTemplate = .twoColumns,
-        snapTriggerThreshold: CGFloat = 25
+        snapTriggerThreshold: CGFloat = 25,
+        appLanguage: String = "system",
+        overlayShortcut: CustomShortcut = .defaultOverlay,
+        maximizeShortcut: CustomShortcut = .defaultMaximize,
+        autoTileShortcut: CustomShortcut = .defaultAutoTile,
+        nextDisplayShortcut: CustomShortcut = .defaultNextDisplay,
+        prevDisplayShortcut: CustomShortcut = .defaultPrevDisplay,
+        undoShortcut: CustomShortcut = .defaultUndo
     ) {
         self.columns = max(2, min(columns, 16))
         self.rows = max(1, min(rows, 16))
@@ -34,6 +50,13 @@ public struct AppSettings: Codable, Equatable, Sendable {
         self.enableSnapZones = enableSnapZones
         self.snapZoneTemplate = snapZoneTemplate
         self.snapTriggerThreshold = max(10, min(snapTriggerThreshold, 100))
+        self.appLanguage = appLanguage
+        self.overlayShortcut = overlayShortcut
+        self.maximizeShortcut = maximizeShortcut
+        self.autoTileShortcut = autoTileShortcut
+        self.nextDisplayShortcut = nextDisplayShortcut
+        self.prevDisplayShortcut = prevDisplayShortcut
+        self.undoShortcut = undoShortcut
     }
 
     public static let `default` = AppSettings()
@@ -52,6 +75,37 @@ public struct AppSettings: Codable, Equatable, Sendable {
         if let data = try? JSONEncoder().encode(self) {
             UserDefaults.standard.set(data, forKey: Self.userDefaultsKey)
         }
+    }
+
+    // MARK: - Restore Defaults Per Tab
+
+    public mutating func resetSnapZones() {
+        self.enableSnapZones = true
+        self.snapZoneTemplate = .twoColumns
+        self.snapTriggerThreshold = 25
+    }
+
+    public mutating func resetGridAndGaps() {
+        self.columns = 4
+        self.rows = 4
+        self.gap = 8
+        self.outerMargin = 8
+    }
+
+    public mutating func resetBehavior() {
+        self.avoidStageManager = true
+        self.stageManagerMargin = 72
+        self.cycleRepeatedSnaps = true
+        self.appLanguage = "system"
+    }
+
+    public mutating func resetShortcuts() {
+        self.overlayShortcut = .defaultOverlay
+        self.maximizeShortcut = .defaultMaximize
+        self.autoTileShortcut = .defaultAutoTile
+        self.nextDisplayShortcut = .defaultNextDisplay
+        self.prevDisplayShortcut = .defaultPrevDisplay
+        self.undoShortcut = .defaultUndo
     }
 
     public var asGridConfig: GridConfig {

@@ -1,0 +1,55 @@
+/* Menu Bar & Commands */
+"Show Grid Overlay" = "显示网格覆盖层";
+"Auto-Tile Active Display" = "自动平铺当前屏幕窗口";
+"Move to Next Display" = "移动到下一个显示器";
+"Move to Previous Display" = "移动到上一个显示器";
+"Snap Presets" = "预设布局";
+"Maximize" = "最大化";
+"Left Half" = "左半屏";
+"Right Half" = "右半屏";
+"Top Half" = "上半屏";
+"Bottom Half" = "下半屏";
+"Center" = "居中";
+"Undo Last Snap" = "撤销上一次调整";
+"Preferences..." = "设置...";
+"Check for Updates..." = "检查更新...";
+"Check Accessibility Permissions..." = "检查辅助功能权限...";
+"Quit Wrangler" = "退出 Wrangler";
+
+/* HUD Overlay */
+"Snap: %@" = "吸附目标: %@";
+"Auto-Tile" = "自动平铺";
+"Next Screen" = "下一屏幕";
+"Undo" = "撤销";
+"Left ½" = "左半屏 ½";
+"Right ½" = "右半屏 ½";
+"Max" = "最大化";
+
+/* Preferences Sections */
+"Snap Zones" = "吸附区域";
+"Grid & Gaps" = "网格与间距";
+"Behavior" = "窗口行为";
+"Shortcuts" = "快捷键";
+"About & Updates" = "关于与更新";
+
+/* Preferences Content */
+"Enable Drag-to-Snap Zones" = "启用拖拽贴边吸附";
+"Drag a window by its title bar to screen edges or corners to snap into template tiles." = "拖动窗口标题栏至屏幕边缘或四角，即可自动吸附到预设模板中。";
+"Ultrawide Template Layout:" = "超宽屏模板布局:";
+"50% / 50% Split (Wide Screens)" = "50% / 50% 对半分割 (宽屏推荐)";
+"Three Columns (33% / 33% / 33%)" = "三栏均分 (33% / 33% / 33%)";
+"Ultrawide Center Focus (25% | 50% | 25%)" = "居中聚焦 (25% | 50% | 25%)";
+"Edge Trigger:" = "贴边触发感应:";
+"Configure default grid dimensions and spacing for overlay snaps." = "配置网格覆盖层的默认行列数及窗口内外部间距。";
+"Columns:" = "列数:";
+"Rows:" = "行数:";
+"Inner Gap:" = "窗口间距:";
+"Outer Margin:" = "屏幕边距:";
+"Avoid macOS Stage Manager strip" = "避开 macOS 台前调度侧边栏";
+"Automatically leaves room on screen edges when Stage Manager thumbnails are visible." = "在台前调度缩略图可见时，自动避让屏幕边缘空间。";
+"Cycle window sizes on repeated shortcut" = "连续按快捷键循环切换大小";
+"Pressing Left or Right Half repeatedly cycles: ½ → ⅔ → ⅓ → ½." = "连续按左半屏或右半屏快捷键将在 ½ → ⅔ → ⅓ → ½ 比例间循环切换。";
+"Maximize Window" = "最大化窗口";
+"View on GitHub" = "在 GitHub 上查看";
+"The open-source window grid manager for macOS" = "macOS 开源窗口网格管理器";
+"Free and open-source under the MIT License." = "基于 MIT 协议的自由及开源软件。";

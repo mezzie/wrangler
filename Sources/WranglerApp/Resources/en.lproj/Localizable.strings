@@ -1,0 +1,55 @@
+/* Menu Bar & Commands */
+"Show Grid Overlay" = "Show Grid Overlay";
+"Auto-Tile Active Display" = "Auto-Tile Active Display";
+"Move to Next Display" = "Move to Next Display";
+"Move to Previous Display" = "Move to Previous Display";
+"Snap Presets" = "Snap Presets";
+"Maximize" = "Maximize";
+"Left Half" = "Left Half";
+"Right Half" = "Right Half";
+"Top Half" = "Top Half";
+"Bottom Half" = "Bottom Half";
+"Center" = "Center";
+"Undo Last Snap" = "Undo Last Snap";
+"Preferences..." = "Preferences...";
+"Check for Updates..." = "Check for Updates...";
+"Check Accessibility Permissions..." = "Check Accessibility Permissions...";
+"Quit Wrangler" = "Quit Wrangler";
+
+/* HUD Overlay */
+"Snap: %@" = "Snap: %@";
+"Auto-Tile" = "Auto-Tile";
+"Next Screen" = "Next Screen";
+"Undo" = "Undo";
+"Left ½" = "Left ½";
+"Right ½" = "Right ½";
+"Max" = "Max";
+
+/* Preferences Sections */
+"Snap Zones" = "Snap Zones";
+"Grid & Gaps" = "Grid & Gaps";
+"Behavior" = "Behavior";
+"Shortcuts" = "Shortcuts";
+"About & Updates" = "About & Updates";
+
+/* Preferences Content */
+"Enable Drag-to-Snap Zones" = "Enable Drag-to-Snap Zones";
+"Drag a window by its title bar to screen edges or corners to snap into template tiles." = "Drag a window by its title bar to screen edges or corners to snap into template tiles.";
+"Ultrawide Template Layout:" = "Ultrawide Template Layout:";
+"50% / 50% Split (Wide Screens)" = "50% / 50% Split (Wide Screens)";
+"Three Columns (33% / 33% / 33%)" = "Three Columns (33% / 33% / 33%)";
+"Ultrawide Center Focus (25% | 50% | 25%)" = "Ultrawide Center Focus (25% | 50% | 25%)";
+"Edge Trigger:" = "Edge Trigger:";
+"Configure default grid dimensions and spacing for overlay snaps." = "Configure default grid dimensions and spacing for overlay snaps.";
+"Columns:" = "Columns:";
+"Rows:" = "Rows:";
+"Inner Gap:" = "Inner Gap:";
+"Outer Margin:" = "Outer Margin:";
+"Avoid macOS Stage Manager strip" = "Avoid macOS Stage Manager strip";
+"Automatically leaves room on screen edges when Stage Manager thumbnails are visible." = "Automatically leaves room on screen edges when Stage Manager thumbnails are visible.";
+"Cycle window sizes on repeated shortcut" = "Cycle window sizes on repeated shortcut";
+"Pressing Left or Right Half repeatedly cycles: ½ → ⅔ → ⅓ → ½." = "Pressing Left or Right Half repeatedly cycles: ½ → ⅔ → ⅓ → ½.";
+"Maximize Window" = "Maximize Window";
+"View on GitHub" = "View on GitHub";
+"The open-source window grid manager for macOS" = "The open-source window grid manager for macOS";
+"Free and open-source under the MIT License." = "Free and open-source under the MIT License.";
