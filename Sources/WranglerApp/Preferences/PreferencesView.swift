@@ -270,17 +270,33 @@ public struct PreferencesView: View {
     // MARK: - Tab 3: Behavior Content
     @ViewBuilder
     private var behaviorContent: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: 14) {
+            Toggle(isOn: Binding(
+                get: { LaunchAtLogin.isEnabled },
+                set: { LaunchAtLogin.setEnabled($0) }
+            )) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Launch Wrangler at login")
+                        .font(.body)
+                        .fontWeight(.medium)
+                    Text("Starts Wrangler automatically in the background when you log in.")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+            }
+
+            Divider()
+
             Toggle(isOn: Binding(
                 get: { settings.avoidStageManager },
                 set: { settings.avoidStageManager = $0; saveSettings() }
             )) {
-                VStack(alignment: .leading, spacing: 3) {
+                VStack(alignment: .leading, spacing: 2) {
                     Text("Avoid macOS Stage Manager strip")
                         .font(.body)
                         .fontWeight(.medium)
                     Text("Automatically leaves room on screen edges when Stage Manager thumbnails are visible.")
-                        .font(.callout)
+                        .font(.caption)
                         .foregroundColor(.secondary)
                 }
             }
@@ -291,12 +307,12 @@ public struct PreferencesView: View {
                 get: { settings.cycleRepeatedSnaps },
                 set: { settings.cycleRepeatedSnaps = $0; saveSettings() }
             )) {
-                VStack(alignment: .leading, spacing: 3) {
+                VStack(alignment: .leading, spacing: 2) {
                     Text("Cycle window sizes on repeated shortcut")
                         .font(.body)
                         .fontWeight(.medium)
                     Text("Pressing Left or Right Half repeatedly cycles: ½ → ⅔ → ⅓ → ½.")
-                        .font(.callout)
+                        .font(.caption)
                         .foregroundColor(.secondary)
                 }
             }
@@ -331,6 +347,62 @@ public struct PreferencesView: View {
                     Text("Takes effect on restart")
                         .font(.caption)
                         .foregroundColor(.secondary)
+                }
+            }
+
+            Divider()
+
+            VStack(alignment: .leading, spacing: 6) {
+                HStack {
+                    Text("Ignored Applications:")
+                        .font(.body)
+                        .fontWeight(.medium)
+                    Spacer()
+                    Menu {
+                        let running = NSWorkspace.shared.runningApplications
+                            .filter { $0.activationPolicy == .regular && !settings.ignoredBundleIDs.contains($0.bundleIdentifier ?? "") }
+                        ForEach(running, id: \.processIdentifier) { app in
+                            if let bid = app.bundleIdentifier, let name = app.localizedName {
+                                Button(name) {
+                                    settings.ignoredBundleIDs.append(bid)
+                                    saveSettings()
+                                }
+                            }
+                        }
+                    } label: {
+                        Text("+ Add Running App")
+                            .font(.caption)
+                    }
+                    .menuStyle(.borderlessButton)
+                    .frame(width: 130)
+                }
+
+                Text("Auto-Tile and Snap will ignore these applications.")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 6) {
+                        ForEach(settings.ignoredBundleIDs, id: \.self) { bid in
+                            HStack(spacing: 4) {
+                                Text(bid.components(separatedBy: ".").last?.capitalized ?? bid)
+                                    .font(.system(.caption, design: .monospaced))
+                                Button(action: {
+                                    settings.ignoredBundleIDs.removeAll { $0 == bid }
+                                    saveSettings()
+                                }) {
+                                    Image(systemName: "xmark.circle.fill")
+                                        .font(.system(size: 11))
+                                        .foregroundColor(.secondary)
+                                }
+                                .buttonStyle(.plain)
+                            }
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 3)
+                            .background(Color.primary.opacity(0.08))
+                            .cornerRadius(5)
+                        }
+                    }
                 }
             }
         }
@@ -411,11 +483,12 @@ public struct PreferencesView: View {
     private var aboutContent: some View {
         VStack(alignment: .leading, spacing: 14) {
             HStack(spacing: 14) {
-                Image(systemName: "square.grid.3x3.square")
+                Image(nsImage: NSApp.applicationIconImage)
                     .resizable()
                     .scaledToFit()
-                    .frame(width: 44, height: 44)
-                    .foregroundColor(.accentColor)
+                    .frame(width: 48, height: 48)
+                    .cornerRadius(10)
+                    .shadow(color: .black.opacity(0.2), radius: 4, x: 0, y: 2)
 
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Wrangler")

@@ -1,173 +1,194 @@
 <p align="center">
-  <h1 align="center">🤠 Wrangler</h1>
-  <p align="center"><strong>The open-source window grid manager for macOS.</strong></p>
-  <p align="center">
-    <a href="https://github.com/mezzie/wrangler/releases/latest">
-      <img src="https://img.shields.io/github/v/release/mezzie/wrangler?color=blue&label=Download%20DMG" alt="Download Latest DMG">
-    </a>
-    <img src="https://img.shields.io/badge/Platform-macOS%2013%2B-blue.svg" alt="Platform: macOS 13+">
-    <img src="https://img.shields.io/badge/Swift-5.9%2B-orange.svg" alt="Swift: 5.9+">
-    <img src="https://img.shields.io/badge/License-MIT-green.svg" alt="License: MIT">
-    <img src="https://img.shields.io/badge/SIP%20Status-Not%20Required-brightgreen.svg" alt="SIP Not Required">
-  </p>
-  <p align="center">
-    <a href="https://github.com/mezzie/wrangler/releases/latest"><strong>⬇️ Download Wrangler.dmg</strong></a>
-  </p>
+  <img src="docs/icons/option_flat_minimal.png" width="96" height="96" alt="Wrangler Logo" style="border-radius: 20px;">
+</p>
+
+<h1 align="center">Wrangler</h1>
+
+<p align="center">
+  <strong>Native macOS window organizer combining interactive grid snapping, edge drop zones, and automated tiling.</strong>
+</p>
+
+<p align="center">
+  <a href="https://github.com/mezzie/wrangler/releases/latest">Download DMG</a> &bull;
+  <a href="#quickstart">Quickstart</a> &bull;
+  <a href="#features">Features</a> &bull;
+  <a href="#shortcuts">Shortcuts</a> &bull;
+  <a href="CHANGELOG.md">Changelog</a>
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/github/v/release/mezzie/wrangler?color=0969da&label=Release" alt="Latest Release">
+  <img src="https://img.shields.io/badge/Platform-macOS%2013%2B-555555" alt="Platform: macOS 13+">
+  <img src="https://img.shields.io/badge/License-MIT-green" alt="License: MIT">
+  <img src="https://img.shields.io/badge/SIP-Not%20Required-success" alt="SIP Not Required">
 </p>
 
 ---
 
-Wrangler gives you instant, mouse- and keyboard-driven window organization on macOS. Summon an interactive glass HUD at your cursor, drag across grid cells, and watch your windows snap cleanly into position.
+## Overview
 
-No background daemons requiring SIP to be disabled. 100% native Swift, AppKit, and Accessibility APIs.
+Most macOS window managers force a choice between two extremes:
+1. **Manual snappers** that require memorizing dozens of keyboard shortcuts for every quadrant.
+2. **Tiling managers** that aggressively take over the desktop and require disabling System Integrity Protection (SIP).
 
----
-
-## ✨ Features
-
-- 🎯 **Interactive Grid Overlay**: Hit **`Option + Space`** to summon a floating glass grid at your mouse cursor. Click and drag across cells to resize and position any window.
-- 🧲 **Snap Zones (Drag-to-Snap)**: Drag any window by its title bar to screen edges or corners to snap into custom templates (50/50 Ultrawide split, 33/33/33 three-column split, or 25|50|25 center focus).
-- 🪟 **AeroSpace-Style Auto-Tiling**: Press **`⌃ ⌥ T`** (or click "Auto-Tile" on the HUD) to instantly organize all open windows on your display into a clean, non-overlapping Binary Space Partitioned (BSP) tree. No manual placement needed.
-- 📐 **Dynamic Grid Sizes**: Switch instantly between **`2×2`**, **`3×3`**, **`4×4`**, **`6×4`**, or fine-tune rows and columns with live steppers (`-` / `+`).
-- 🖥️ **Multi-Display Hopping**: Throw windows to your next or previous screen instantly with **`⌃ ⌥ →`** or **`⌃ ⌥ ←`**, automatically scaling to the target display's dimensions.
-- 🔁 **Window Size Cycling**: Pressing Left Half or Right Half repeatedly cycles window widths: **`½ → ⅔ → ⅓ → ½`** (Rectangle / Lasso pattern).
-- 🧩 **Stage Manager Aware**: Automatically detects macOS Stage Manager and reserves margin space so windows never overlap your stage thumbnails.
-- 🎨 **Ghost Destination Preview**: A real-time translucent blueprint outlines exactly where the window will land before you release the mouse.
-- ⏪ **Undo / Restore**: Changed your mind? Press **`Option + Command + Z`** to instantly restore any window to its prior frame.
-- 🚀 **In-App Auto-Updates**: Checks for updates from GitHub Releases and upgrades in place with one-click restart (Docker Desktop style).
-- ⚙️ **Preferences Window**: Press **`Command + ,`** from the menu bar to customize inner window gaps (0–32px), outer screen margins (0–40px), and behavior toggles in a clean sidebar view.
+Wrangler bridges this gap. It provides a visual **HUD grid** for fast manual adjustments, **Snap Zones** for drag-and-drop ultrawide workflows, and **one-key Auto-Tiling** using recursive Binary Space Partitioning—all running within standard macOS Accessibility APIs with zero system security compromises.
 
 ---
 
-## ⌨️ Default Keyboard Shortcuts
+## Quickstart
+
+### Direct Download
+1. Download **[Wrangler.dmg](https://github.com/mezzie/wrangler/releases/latest)**.
+2. Drag **Wrangler** into your `/Applications` directory.
+3. Open Wrangler and grant **Accessibility** permissions when prompted in **System Settings → Privacy & Security → Accessibility**.
+
+### Build from Source
+```bash
+git clone https://github.com/mezzie/wrangler.git
+cd wrangler
+./scripts/build-app.sh
+open build/Wrangler.app
+```
+
+---
+
+## Features
+
+### Interactive Grid Overlay (`⌥ Space`)
+Summons a floating HUD directly at your cursor location. Click and drag across the cells to draw an exact destination frame. A translucent blueprint previews the snap location in real time before you release the mouse.
+
+### Snap Zones (Drag-to-Snap)
+Drag any window by its title bar to screen edges or corners to trigger template layouts tailored for ultrawide displays:
+- **50% / 50% Split**: Left and right screen halves.
+- **Three Columns**: 33% / 33% / 33% tri-pane layout.
+- **Center Focus**: 25% sidebar | 50% center master | 25% sidebar.
+- **Four Corners**: Screen quarters.
+
+### Automated Window Tiling (`⌃ ⌥ T`)
+Organizes all visible, non-minimized windows on the active display into a balanced Binary Space Partitioning (BSP) tree. Automatically scales windows to eliminate overlap while keeping the active application focused.
+
+### Multi-Display Hopping
+Transfer windows across monitors instantly while preserving proportional dimensions:
+- `⌃ ⌥ →` moves focused window to the next display.
+- `⌃ ⌥ ←` moves focused window to the previous display.
+
+### Width Cycling
+Directional presets cycle width ratios on repeated presses (e.g., Left Half cycles between 1/2, 2/3, and 1/3 widths).
+
+### Stage Manager Clearance
+Detects whether macOS Stage Manager thumbnails are visible and dynamically adjusts margins so windows never cover the stage strip.
+
+### In-App Auto-Updates
+Periodically checks GitHub Releases for new updates. Allows one-click in-place upgrading and restarting without Terminal commands.
+
+---
+
+## Shortcuts
 
 | Shortcut | Action | Description |
 | :--- | :--- | :--- |
-| **`⌥ Space`** | **Show Grid HUD** | Opens floating grid overlay at current cursor position |
-| **`⌃ ⌥ ↵`** / **`⌃ ⌥ M`** | **Maximize Window** | Instantly maximizes focused window |
-| **`⌃ ⌥ T`** | **Auto-Tile Desktop** | Automatically tiles all open windows on display (BSP tree) |
-| **`⌃ ⌥ →`** | **Next Display** | Throws focused window to the next monitor |
-| **`⌃ ⌥ ←`** | **Prev Display** | Throws focused window to the previous monitor |
-| **`⌥ ⌘ Z`** | **Undo Snap** | Restores focused window to its prior size and position |
-| **`⌘ ,`** | **Preferences** | Opens spacing, gap, and grid configuration window |
-| **`ESC`** | **Dismiss** | Closes overlay without modifying windows |
+| `⌥ Space` | Grid Overlay | Opens interactive grid HUD at mouse cursor |
+| `⌃ ⌥ ↵` or `⌃ ⌥ M` | Maximize | Expands focused window to full visible screen |
+| `⌃ ⌥ T` | Auto-Tile | Organizes open windows into a non-overlapping BSP tree |
+| `⌃ ⌥ →` | Next Screen | Shifts focused window to the next connected display |
+| `⌃ ⌥ ←` | Prev Screen | Shifts focused window to the previous connected display |
+| `⌥ ⌘ Z` | Undo | Restores window to its coordinates before the last snap |
+| `⌘ ,` | Preferences | Opens settings for grid sizes, margins, templates, and languages |
+| `ESC` | Cancel | Closes overlay without moving windows |
+
+*All shortcuts can be customized in **Preferences → Shortcuts** using the interactive key recorder.*
 
 ---
 
-## 🚀 Quickstart & Installation
+## Preferences
 
-### Option 1: Direct Download (Recommended)
-1. Download **[Wrangler.dmg](https://github.com/mezzie/wrangler/releases/latest)**.
-2. Open the disk image and drag **Wrangler** into your **Applications** folder.
-3. Open Wrangler from Applications or Spotlight.
-4. When prompted, allow **Accessibility** permissions in **System Settings → Privacy & Security → Accessibility**.
+Wrangler features a multi-section sidebar settings window (`⌘ ,`):
 
----
-
-### Option 2: Build from Source
-
-1. **Clone the repository:**
-   ```bash
-   git clone https://github.com/mezzie/wrangler.git
-   cd wrangler
-   ```
-
-2. **Build and assemble the native `.app` bundle:**
-   ```bash
-   ./scripts/build-app.sh
-   ```
-   *Note: The build script automatically detects your local Apple Development certificate in Keychain for code-signing, avoiding permission invalidations.*
-
-3. **Launch Wrangler:**
-   ```bash
-   open build/Wrangler.app
-   ```
-   *(Optional) Copy to `/Applications` for Spotlight / Raycast launch:*
-   ```bash
-   cp -R build/Wrangler.app /Applications/
-   ```
-
-4. **Grant Accessibility Permission:**
-   - Go to **System Settings → Privacy & Security → Accessibility**.
-   - Toggle **Wrangler** to **ON**.
+- **Snap Zones**: Toggle drag-to-snap behavior, select ultrawide templates, and tune edge trigger sensitivity (15–60 px).
+- **Grid & Gaps**: Adjust default columns (2–12), rows (1–8), inner window gaps (0–32 px), and outer screen padding (0–40 px).
+- **Behavior**: Toggle Stage Manager margin avoidance, width cycling, launch at login (`SMAppService`), and in-app language selection.
+- **Ignored Applications**: Blacklist utility apps (Calculator, 1Password, floating panels) so Auto-Tile and Snap ignore them.
+- **Shortcuts**: Interactive shortcut recorder to rebind any hotkey by pressing the desired keys.
+- **Restore Defaults**: Independent reset buttons per tab to restore original settings without wiping other customizations.
 
 ---
 
-## 🛠️ CLI Mode
+## CLI Automation
 
-Wrangler also includes a headless command-line tool (`wrangler-cli`) for scripting, automation, or keyboard maestro integration:
+Wrangler includes a standalone headless CLI (`wrangler-cli`):
 
 ```bash
-# Check accessibility permission
+# Authorization check
 swift run wrangler-cli check-perm
 
-# List connected displays and coordinate frames
+# List connected displays and geometry
 swift run wrangler-cli screens
 
-# Inspect frontmost focused window
+# Inspect frontmost target window
 swift run wrangler-cli target
 
-# Snap active window to a preset
+# Snap focused window to standard presets
 swift run wrangler-cli snap left-half
 swift run wrangler-cli snap right-half
 swift run wrangler-cli snap full
 swift run wrangler-cli snap center
 
-# Snap to arbitrary custom grid coordinates: <cols> <rows> <startCol> <startRow> <endCol> <endRow>
+# Snap to custom grid coordinates: <cols> <rows> <startCol> <startRow> <endCol> <endRow>
 swift run wrangler-cli custom 4 4 0 0 1 2
 ```
 
 ---
 
-## 🏗️ Architecture
+## Architecture
 
 ```
-wrangler/
-├── Package.swift
-├── Sources/
-│   ├── WranglerCore/              # Headless Core Engine
-│   │   ├── Accessibility/         # AXUIElement wrappers (move, resize, focus detection)
-│   │   ├── Display/               # NSScreen geometry, Stage Manager clearance, multi-display map
-│   │   ├── Geometry/              # Grid math, multi-cell span calculations, gap offsets
-│   │   ├── History/               # Thread-safe undo/restore stack
-│   │   └── Layout/                # AppSettings and NamedLayout presets
-│   │
-│   ├── WranglerApp/               # Native macOS Application
-│   │   ├── Overlay/               # Glass HUD NSPanel & AppKit GridCanvasView
-│   │   ├── Preview/               # Floating ghost preview window
-│   │   ├── MenuBar/               # NSStatusItem menu bar controller
-│   │   ├── Hotkey/                # Carbon global event hotkeys
-│   │   └── Preferences/           # SwiftUI Preferences configuration window
-│   │
-│   └── WranglerCLI/               # Command-line automation tool
-└── Tests/
-    └── WranglerCoreTests/         # Comprehensive unit tests
+Sources/
+├── WranglerCore/              # Core logic engine
+│   ├── Accessibility/         # AXUIElement abstractions and Z-order detection
+│   ├── Display/               # NSScreen geometry, Stage Manager offsets, and display mapping
+│   ├── Geometry/              # Grid coordinate mathematics and gap resolution
+│   ├── History/               # Thread-safe undo and restore stack
+│   ├── Hotkey/                # Key code mappings and shortcut data models
+│   ├── Layout/                # AppSettings persistence and presets
+│   ├── SnapZones/             # Edge-drag hit testing and template resolution
+│   └── Tiling/                # Recursive Binary Space Partitioning (BSP) auto-tile engine
+│
+└── WranglerApp/               # Native macOS Application
+    ├── AppDelegate.swift      # Application lifecycle and status item initialization
+    ├── Hotkey/                # Carbon global event hotkey manager
+    ├── Launch/                # ServiceManagement login item service
+    ├── MenuBar/               # Menu bar controller and actions
+    ├── Overlay/               # Floating glass HUD panel and AppKit canvas
+    ├── Preferences/           # Sidebar preferences window and key recorder
+    ├── Preview/               # Real-time ghost target blueprint panel
+    ├── SnapZones/             # Global mouse drag monitor and drop handler
+    └── Update/                # GitHub Releases checker and auto-installer
 ```
 
 ---
 
-## 🧪 Running Tests
+## Development
+
+Run the automated test suite:
 
 ```bash
 swift test
 ```
 
-All 12 unit tests verify geometry calculations, gap/margin offsets, multi-cell selection bounds, undo stack limits, and multi-display coordinate mappings.
+Build the release `.app` bundle:
+
+```bash
+./scripts/build-app.sh
+```
+
+Package the release `.dmg`:
+
+```bash
+./scripts/create-dmg.sh 1.5.0
+```
 
 ---
 
-## 🤝 Contributing
+## License
 
-Contributions, bug reports, and feature requests are welcome!
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
----
-
-## 📄 License & Changelog
-
-- See [CHANGELOG.md](CHANGELOG.md) for release notes and version history.
-- Distributed under the **MIT License**. See [LICENSE](LICENSE) for more information.
+Distributed under the [MIT License](LICENSE). See [CHANGELOG.md](CHANGELOG.md) for version release notes.

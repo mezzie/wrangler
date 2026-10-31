@@ -12,6 +12,7 @@ public struct AppSettings: Codable, Equatable, Sendable {
     public var snapZoneTemplate: SnapZoneTemplate
     public var snapTriggerThreshold: CGFloat
     public var appLanguage: String
+    public var ignoredBundleIDs: [String]
 
     // Customizable Shortcuts
     public var overlayShortcut: CustomShortcut
@@ -33,6 +34,7 @@ public struct AppSettings: Codable, Equatable, Sendable {
         snapZoneTemplate: SnapZoneTemplate = .twoColumns,
         snapTriggerThreshold: CGFloat = 25,
         appLanguage: String = "system",
+        ignoredBundleIDs: [String] = ["com.apple.calculator", "com.1password.1password"],
         overlayShortcut: CustomShortcut = .defaultOverlay,
         maximizeShortcut: CustomShortcut = .defaultMaximize,
         autoTileShortcut: CustomShortcut = .defaultAutoTile,
@@ -51,6 +53,7 @@ public struct AppSettings: Codable, Equatable, Sendable {
         self.snapZoneTemplate = snapZoneTemplate
         self.snapTriggerThreshold = max(10, min(snapTriggerThreshold, 100))
         self.appLanguage = appLanguage
+        self.ignoredBundleIDs = ignoredBundleIDs
         self.overlayShortcut = overlayShortcut
         self.maximizeShortcut = maximizeShortcut
         self.autoTileShortcut = autoTileShortcut
@@ -97,6 +100,7 @@ public struct AppSettings: Codable, Equatable, Sendable {
         self.stageManagerMargin = 72
         self.cycleRepeatedSnaps = true
         self.appLanguage = "system"
+        self.ignoredBundleIDs = ["com.apple.calculator", "com.1password.1password"]
     }
 
     public mutating func resetShortcuts() {

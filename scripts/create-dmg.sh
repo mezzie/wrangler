@@ -4,13 +4,13 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
 
-VERSION="${1:-1.0.0}"
+VERSION="${1:-1.6.0}"
 APP_PATH="${ROOT_DIR}/build/Wrangler.app"
 DMG_PATH="${ROOT_DIR}/build/Wrangler-${VERSION}.dmg"
 STAGING_DIR="${ROOT_DIR}/build/dmg-staging"
 
 echo "==> Ensuring Wrangler.app is built..."
-"${SCRIPT_DIR}/build-app.sh"
+"${SCRIPT_DIR}/build-app.sh" "${VERSION}"
 
 echo "==> Preparing DMG staging area..."
 rm -rf "${STAGING_DIR}" "${DMG_PATH}"
@@ -18,6 +18,10 @@ mkdir -p "${STAGING_DIR}"
 
 cp -R "${APP_PATH}" "${STAGING_DIR}/Wrangler.app"
 ln -s /Applications "${STAGING_DIR}/Applications"
+
+if [ -f "${APP_PATH}/Contents/Resources/AppIcon.icns" ]; then
+    cp "${APP_PATH}/Contents/Resources/AppIcon.icns" "${STAGING_DIR}/.VolumeIcon.icns"
+fi
 
 echo "==> Creating compressed disk image: ${DMG_PATH}..."
 hdiutil create \

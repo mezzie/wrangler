@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.6.0] - 2026-10-31
+
+### Added
+- **Official App Icon**: Brand-new flat cobalt & lasso macOS squircle icon (`AppIcon.icns`) with full Retina support. Included on DMG installer.
+- **Launch at Login**: 1-click native macOS 13+ `SMAppService` toggle in Preferences.
+- **Ignored Applications**: Blacklist utility apps (Calculator, 1Password, floating panels) with an interactive "+ Add Running App" selector.
+- **Professional README**: Clean, emoji-free developer documentation modeled after leading open-source projects.
+
+---
+
 ## [1.5.0] - 2026-10-31
 
 ### Added

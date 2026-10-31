@@ -148,11 +148,14 @@ public final class AccessibilityEngine: @unchecked Sendable {
             throw AccessibilityError.noFocusedWindow
         }
 
+        let settings = AppSettings.load()
+
         for info in list {
             guard let layer = info[kCGWindowLayer as String] as? Int, layer == 0,
                   let pid = info[kCGWindowOwnerPID as String] as? pid_t, pid != myPID,
                   let app = NSRunningApplication(processIdentifier: pid),
-                  app.activationPolicy == .regular else {
+                  app.activationPolicy == .regular,
+                  !(app.bundleIdentifier.map { settings.ignoredBundleIDs.contains($0) } ?? false) else {
                 continue
             }
 
@@ -262,12 +265,14 @@ public final class AccessibilityEngine: @unchecked Sendable {
     public func getVisibleWindows(on screen: ScreenInfo) -> [(element: AXUIElement, target: WindowTarget)] {
         guard Self.isTrusted() else { return [] }
 
+        let settings = AppSettings.load()
         var results: [(element: AXUIElement, target: WindowTarget)] = []
         let apps = NSWorkspace.shared.runningApplications.filter {
             $0.activationPolicy == .regular &&
             $0.processIdentifier != ProcessInfo.processInfo.processIdentifier &&
             !$0.isTerminated &&
-            !$0.isHidden
+            !$0.isHidden &&
+            !($0.bundleIdentifier.map { settings.ignoredBundleIDs.contains($0) } ?? false)
         }
 
         let sortedApps = apps.sorted { app1, _ in app1.isActive }
