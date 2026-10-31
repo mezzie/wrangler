@@ -2,10 +2,16 @@
   <h1 align="center">🤠 Wrangler</h1>
   <p align="center"><strong>The open-source window grid manager for macOS.</strong></p>
   <p align="center">
+    <a href="https://github.com/mezzie/wrangler/releases/latest">
+      <img src="https://img.shields.io/github/v/release/mezzie/wrangler?color=blue&label=Download%20DMG" alt="Download Latest DMG">
+    </a>
     <img src="https://img.shields.io/badge/Platform-macOS%2013%2B-blue.svg" alt="Platform: macOS 13+">
     <img src="https://img.shields.io/badge/Swift-5.9%2B-orange.svg" alt="Swift: 5.9+">
     <img src="https://img.shields.io/badge/License-MIT-green.svg" alt="License: MIT">
     <img src="https://img.shields.io/badge/SIP%20Status-Not%20Required-brightgreen.svg" alt="SIP Not Required">
+  </p>
+  <p align="center">
+    <a href="https://github.com/mezzie/wrangler/releases/latest"><strong>⬇️ Download Wrangler.dmg</strong></a>
   </p>
 </p>
 
@@ -45,11 +51,15 @@ No background daemons requiring SIP to be disabled. 100% native Swift, AppKit, a
 
 ## 🚀 Quickstart & Installation
 
-### Requirements
-- macOS 13.0 (Ventura) or later (Apple Silicon & Intel)
-- Xcode Command Line Tools (`xcode-select --install`)
+### Option 1: Direct Download (Recommended)
+1. Download **[Wrangler.dmg](https://github.com/mezzie/wrangler/releases/latest)**.
+2. Open the disk image and drag **Wrangler** into your **Applications** folder.
+3. Open Wrangler from Applications or Spotlight.
+4. When prompted, allow **Accessibility** permissions in **System Settings → Privacy & Security → Accessibility**.
 
-### Build & Run from Source
+---
+
+### Option 2: Build from Source
 
 1. **Clone the repository:**
    ```bash
