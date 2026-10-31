@@ -27,6 +27,34 @@ wrangler/
 
 ---
 
+## Features
+
+- **Interactive Grid Overlay**: Hit **`Option + Space`** to summon a floating glass HUD at your mouse position. Click and drag across cells to resize and position any window.
+- **Dynamic Grid Sizes**: Switch instantly between **`2×2`**, **`3×3`**, **`4×4`**, **`6×4`**, or fine-tune columns with the stepper (`-` / `+`).
+- **Multi-Display Hopping**: Throw windows to the next screen instantly with **`Control + Option + Right Arrow`** (or `display.2` button on the HUD).
+- **Shortcut Cycling**: Pressing Left Half or Right Half repeatedly cycles window width: **`½ → ⅔ → ⅓ → ½`**.
+- **Stage Manager Aware**: Automatically avoids the macOS Stage Manager thumbnail strip on screen margins.
+- **Custom Spacing & Gaps**: Adjust inner window gaps and outer screen margins in Preferences.
+- **Extended Snap Presets**: Halves, Thirds (⅓, ⅔), Quarters (Top-Left, Top-Right, Bottom-Left, Bottom-Right), Maximize, and Center.
+- **Ghost Target Preview**: Real-time translucent overlay outlines where the window will snap before releasing mouse.
+- **Undo / Restore**: Restore any window to its previous position with **`Option + Command + Z`**.
+- **Preferences Window**: Open with **`Command + ,`** from menu bar to configure grid dimensions, margins, gaps, and behaviors.
+
+---
+
+## Default Shortcuts
+
+| Shortcut | Action |
+| :--- | :--- |
+| **`⌥ Space`** | Show Grid Overlay |
+| **`⌃ ⌥ →`** | Move to Next Display |
+| **`⌃ ⌥ ←`** | Move to Previous Display |
+| **`⌥ ⌘ Z`** | Undo Last Snap |
+| **`⌘ ,`** | Open Preferences Window |
+| **`ESC`** | Dismiss Overlay without changes |
+
+---
+
 ## Quickstart (GUI App)
 
 ### 1. Build and Package `.app`

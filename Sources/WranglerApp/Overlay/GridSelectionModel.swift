@@ -12,7 +12,7 @@ public final class GridSelectionModel: ObservableObject {
     public var onSelectionCommitted: ((GridSelection) -> Void)?
     public var onCancel: (() -> Void)?
 
-    public init(config: GridConfig = .default4x4) {
+    public init(config: GridConfig = AppSettings.load().asGridConfig) {
         self.config = config
     }
 
@@ -23,6 +23,26 @@ public final class GridSelectionModel: ObservableObject {
             return GridSelection(single: hover)
         }
         return nil
+    }
+
+    public func setDimensions(cols: Int, rows: Int) {
+        let newCols = max(2, min(cols, 16))
+        let newRows = max(1, min(rows, 16))
+        self.config = GridConfig(columns: newCols, rows: newRows, gap: config.gap, outerMargin: config.outerMargin)
+        reset()
+
+        var settings = AppSettings.load()
+        settings.columns = newCols
+        settings.rows = newRows
+        settings.save()
+    }
+
+    public func adjustColumns(delta: Int) {
+        setDimensions(cols: config.columns + delta, rows: config.rows)
+    }
+
+    public func adjustRows(delta: Int) {
+        setDimensions(cols: config.columns, rows: config.rows + delta)
     }
 
     public func cellHovered(col: Int, row: Int) {

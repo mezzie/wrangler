@@ -12,13 +12,23 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         // Initialize status bar controller
         statusBarController = StatusBarController()
 
-        // Register global hotkey (Option + Space)
+        // Register global hotkeys
         GlobalHotKeyManager.shared.onHotKeyPressed = {
             Task { @MainActor in
                 WindowManagerCoordinator.shared.toggleOverlay()
             }
         }
-        GlobalHotKeyManager.shared.registerDefaultHotKey()
+        GlobalHotKeyManager.shared.onNextDisplayPressed = {
+            Task { @MainActor in
+                WindowManagerCoordinator.shared.moveToNextDisplay()
+            }
+        }
+        GlobalHotKeyManager.shared.onPrevDisplayPressed = {
+            Task { @MainActor in
+                WindowManagerCoordinator.shared.moveToPreviousDisplay()
+            }
+        }
+        GlobalHotKeyManager.shared.registerDefaultHotKeys()
 
         // Prompt for Accessibility if not granted yet
         _ = AccessibilityEngine.isTrusted(promptIfNeeded: true)
@@ -27,6 +37,6 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     public func applicationWillTerminate(_ notification: Notification) {
-        GlobalHotKeyManager.shared.unregister()
+        GlobalHotKeyManager.shared.unregisterAll()
     }
 }

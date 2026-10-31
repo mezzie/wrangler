@@ -19,6 +19,10 @@ public final class WindowManagerCoordinator: ObservableObject {
     private var activeScreen: ScreenInfo?
     private var lastActiveApp: NSRunningApplication?
 
+    // Cycling state
+    private var lastPresetInvoked: String?
+    private var lastPresetTimestamp: Date?
+
     private init() {
         setupSelectionCallbacks()
         setupAppTracking()
@@ -81,12 +85,8 @@ public final class WindowManagerCoordinator: ObservableObject {
     }
 
     public func showOverlay() {
-        guard AccessibilityEngine.isTrusted(promptIfNeeded: true) else {
-            let alert = NSAlert()
-            alert.messageText = "Accessibility Permissions Required"
-            alert.informativeText = "Wrangler needs Accessibility permission to move windows. Please enable Wrangler in System Settings -> Privacy & Security -> Accessibility."
-            alert.alertStyle = .warning
-            alert.runModal()
+        guard AccessibilityEngine.isTrusted() else {
+            print("Notice: Accessibility permission not granted yet.")
             return
         }
 
@@ -109,12 +109,18 @@ public final class WindowManagerCoordinator: ObservableObject {
         }
         self.activeScreen = screen
 
+        let allScreens = displayManager.getScreens()
+
         let interactiveView = GridInteractiveView(
             model: selectionModel,
             appName: currentTarget?.appName,
             onUndo: { [weak self] in
                 self?.undoLastSnap()
-            }
+            },
+            onHopNextScreen: { [weak self] in
+                self?.moveToNextDisplay()
+            },
+            hasMultipleScreens: allScreens.count > 1
         )
 
         let panel = GridOverlayPanel(rootView: AnyView(interactiveView))
@@ -173,8 +179,22 @@ public final class WindowManagerCoordinator: ObservableObject {
     }
 
     public func snapFocusedWindow(preset: String) {
+        let settings = AppSettings.load()
+        var effectivePreset = preset
+
+        // Check for repeated shortcut cycling
+        let now = Date()
+        if settings.cycleRepeatedSnaps,
+           let last = lastPresetInvoked,
+           let ts = lastPresetTimestamp,
+           now.timeIntervalSince(ts) < 1.5 {
+            effectivePreset = NamedLayout.nextCycledPreset(for: last)
+        }
+        lastPresetInvoked = effectivePreset
+        lastPresetTimestamp = now
+
         guard let screen = displayManager.currentScreen(),
-              let layout = NamedLayout.standardPresets.first(where: { $0.id == preset }) else {
+              let layout = NamedLayout.standardPresets.first(where: { $0.id == effectivePreset }) else {
             return
         }
 
@@ -182,16 +202,58 @@ public final class WindowManagerCoordinator: ObservableObject {
 
         do {
             let (element, target) = try accessibilityEngine.getWindowTarget(for: appToSnap)
+            let config = GridConfig(
+                columns: layout.config.columns,
+                rows: layout.config.rows,
+                gap: settings.gap,
+                outerMargin: settings.outerMargin
+            )
             let targetRectAX = GridMath.calculateRect(
                 for: layout.selection,
                 in: screen.axVisibleFrame,
-                config: layout.config
+                config: config
             )
             windowHistory.push(pid: target.pid, frame: target.frame)
             try accessibilityEngine.setWindowFrame(targetRectAX, element: element)
             NSRunningApplication(processIdentifier: target.pid)?.activate(options: .activateIgnoringOtherApps)
         } catch {
             print("Snap preset error: \(error.localizedDescription)")
+        }
+    }
+
+    public func moveToNextDisplay() {
+        let appToSnap = resolveTargetApp()
+        do {
+            let (element, target) = try accessibilityEngine.getWindowTarget(for: appToSnap)
+            guard let currentScreen = displayManager.screen(forWindowAXFrame: target.frame),
+                  let nextScreen = displayManager.nextScreen(from: currentScreen) else {
+                return
+            }
+            let targetRectAX = displayManager.mapAXFrame(target.frame, from: currentScreen, to: nextScreen)
+            windowHistory.push(pid: target.pid, frame: target.frame)
+            try accessibilityEngine.setWindowFrame(targetRectAX, element: element)
+            dismissOverlay()
+            NSRunningApplication(processIdentifier: target.pid)?.activate(options: .activateIgnoringOtherApps)
+        } catch {
+            print("Move to next display error: \(error.localizedDescription)")
+        }
+    }
+
+    public func moveToPreviousDisplay() {
+        let appToSnap = resolveTargetApp()
+        do {
+            let (element, target) = try accessibilityEngine.getWindowTarget(for: appToSnap)
+            guard let currentScreen = displayManager.screen(forWindowAXFrame: target.frame),
+                  let prevScreen = displayManager.previousScreen(from: currentScreen) else {
+                return
+            }
+            let targetRectAX = displayManager.mapAXFrame(target.frame, from: currentScreen, to: prevScreen)
+            windowHistory.push(pid: target.pid, frame: target.frame)
+            try accessibilityEngine.setWindowFrame(targetRectAX, element: element)
+            dismissOverlay()
+            NSRunningApplication(processIdentifier: target.pid)?.activate(options: .activateIgnoringOtherApps)
+        } catch {
+            print("Move to previous display error: \(error.localizedDescription)")
         }
     }
 

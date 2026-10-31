@@ -49,5 +49,8 @@ cat << 'EOF' > "${APP_DIR}/Contents/Info.plist"
 </plist>
 EOF
 
+echo "==> Code-signing ${APP_DIR}..."
+codesign --force --deep --sign - --identifier "com.rngo.wrangler" "${APP_DIR}"
+
 echo "==> Wrangler.app assembled successfully at ${APP_DIR}!"
 echo "    To launch: open ${APP_DIR}"

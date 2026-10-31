@@ -24,6 +24,7 @@ public final class StatusBarController {
     public func buildMenu() {
         let menu = NSMenu(title: "Wrangler")
 
+        // 1. Overlay
         let showOverlayItem = NSMenuItem(
             title: "Show Grid Overlay",
             action: #selector(showOverlayClicked),
@@ -35,21 +36,34 @@ public final class StatusBarController {
 
         menu.addItem(NSMenuItem.separator())
 
-        // Presets submenu
+        // 2. Display Hop
+        let nextDispItem = NSMenuItem(
+            title: "Move to Next Display",
+            action: #selector(nextDisplayClicked),
+            keyEquivalent: String(utf16CodeUnits: [unichar(NSRightArrowFunctionKey)], count: 1)
+        )
+        nextDispItem.keyEquivalentModifierMask = [.control, .option]
+        nextDispItem.target = self
+        menu.addItem(nextDispItem)
+
+        let prevDispItem = NSMenuItem(
+            title: "Move to Previous Display",
+            action: #selector(prevDisplayClicked),
+            keyEquivalent: String(utf16CodeUnits: [unichar(NSLeftArrowFunctionKey)], count: 1)
+        )
+        prevDispItem.keyEquivalentModifierMask = [.control, .option]
+        prevDispItem.target = self
+        menu.addItem(prevDispItem)
+
+        menu.addItem(NSMenuItem.separator())
+
+        // 3. Presets Submenu
         let presetsMenu = NSMenu(title: "Snap Presets")
 
-        let presets: [(String, String, String)] = [
-            ("Maximize", "full", "M"),
-            ("Left Half", "left-half", "←"),
-            ("Right Half", "right-half", "→"),
-            ("Top Half", "top-half", "↑"),
-            ("Bottom Half", "bottom-half", "↓"),
-            ("Center", "center", "C")
-        ]
-
-        for (title, id, _) in presets {
-            let item = NSMenuItem(title: title, action: #selector(presetClicked(_:)), keyEquivalent: "")
-            item.representedObject = id
+        let allPresets = NamedLayout.standardPresets
+        for layout in allPresets {
+            let item = NSMenuItem(title: layout.name, action: #selector(presetClicked(_:)), keyEquivalent: "")
+            item.representedObject = layout.id
             item.target = self
             presetsMenu.addItem(item)
         }
@@ -58,7 +72,7 @@ public final class StatusBarController {
         presetsItem.submenu = presetsMenu
         menu.addItem(presetsItem)
 
-        // Undo
+        // 4. Undo
         let undoItem = NSMenuItem(
             title: "Undo Last Snap",
             action: #selector(undoClicked),
@@ -70,14 +84,24 @@ public final class StatusBarController {
 
         menu.addItem(NSMenuItem.separator())
 
-        // Check Permissions
+        // 5. Preferences
+        let prefsItem = NSMenuItem(
+            title: "Preferences...",
+            action: #selector(preferencesClicked),
+            keyEquivalent: ","
+        )
+        prefsItem.keyEquivalentModifierMask = [.command]
+        prefsItem.target = self
+        menu.addItem(prefsItem)
+
+        // 6. Check Permissions
         let permItem = NSMenuItem(title: "Check Accessibility Permissions...", action: #selector(checkPermClicked), keyEquivalent: "")
         permItem.target = self
         menu.addItem(permItem)
 
         menu.addItem(NSMenuItem.separator())
 
-        // Quit
+        // 7. Quit
         let quitItem = NSMenuItem(title: "Quit Wrangler", action: #selector(quitClicked), keyEquivalent: "q")
         quitItem.target = self
         menu.addItem(quitItem)
@@ -89,6 +113,14 @@ public final class StatusBarController {
         coordinator.showOverlay()
     }
 
+    @objc private func nextDisplayClicked() {
+        coordinator.moveToNextDisplay()
+    }
+
+    @objc private func prevDisplayClicked() {
+        coordinator.moveToPreviousDisplay()
+    }
+
     @objc private func presetClicked(_ sender: NSMenuItem) {
         guard let presetID = sender.representedObject as? String else { return }
         coordinator.snapFocusedWindow(preset: presetID)
@@ -96,6 +128,10 @@ public final class StatusBarController {
 
     @objc private func undoClicked() {
         coordinator.undoLastSnap()
+    }
+
+    @objc private func preferencesClicked() {
+        PreferencesWindowController.shared.showPreferences()
     }
 
     @objc private func checkPermClicked() {
