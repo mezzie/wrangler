@@ -12,7 +12,11 @@ let package = Package(
             targets: ["WranglerCore"]
         ),
         .executable(
-            name: "wrangler",
+            name: "Wrangler",
+            targets: ["WranglerApp"]
+        ),
+        .executable(
+            name: "wrangler-cli",
             targets: ["WranglerCLI"]
         )
     ],
@@ -21,6 +25,11 @@ let package = Package(
             name: "WranglerCore",
             dependencies: [],
             path: "Sources/WranglerCore"
+        ),
+        .executableTarget(
+            name: "WranglerApp",
+            dependencies: ["WranglerCore"],
+            path: "Sources/WranglerApp"
         ),
         .executableTarget(
             name: "WranglerCLI",

@@ -27,6 +27,27 @@ wrangler/
 
 ---
 
+## Quickstart (GUI App)
+
+### 1. Build and Package `.app`
+```bash
+./scripts/build-app.sh
+```
+
+### 2. Launch
+```bash
+open build/Wrangler.app
+```
+- App runs in the menu bar with icon `square.grid.3x3.square`.
+- Global hotkey: **`Option + Space`** triggers the floating interactive grid overlay.
+- Drag mouse across grid cells to select target size/position, or click preset buttons.
+- Translucent ghost preview shows exactly where the window will snap.
+- Release mouse to snap focused window into position.
+- Press **`ESC`** or click outside to dismiss without changes.
+- Undo: **`Option + Command + Z`** or select "Undo Last Snap" from menu bar.
+
+---
+
 ## Quickstart (CLI)
 
 ### 1. Build
