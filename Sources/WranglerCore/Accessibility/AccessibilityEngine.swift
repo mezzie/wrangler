@@ -39,7 +39,7 @@ public enum AccessibilityError: Error, LocalizedError {
         case .noFocusedApplication:
             return "No focused frontmost application found."
         case .noFocusedWindow:
-            return "No active window found for application."
+            return "No active resizable window found for application."
         case .attributeUnavailable(let attr):
             return "Accessibility attribute '\(attr)' could not be read."
         case .setAttributeFailed(let err):
@@ -60,6 +60,19 @@ public final class AccessibilityEngine: @unchecked Sendable {
         return AXIsProcessTrusted()
     }
 
+    /// Checks if a window can be resized via Accessibility
+    public func isWindowResizable(_ element: AXUIElement) -> Bool {
+        var settable: DarwinBoolean = false
+        let err = AXUIElementIsAttributeSettable(element, kAXSizeAttribute as CFString, &settable)
+        guard err == .success && settable.boolValue else { return false }
+
+        // Must have non-trivial dimensions (filters out 0x0 hidden toolbars/popups)
+        if let frame = try? getWindowFrame(element: element) {
+            return frame.width >= 150 && frame.height >= 120
+        }
+        return false
+    }
+
     /// Finds the focused or main window element for a specific application
     public func getFocusedWindowElement(for targetApp: NSRunningApplication) throws -> AXUIElement {
         guard Self.isTrusted() else {
@@ -68,32 +81,34 @@ public final class AccessibilityEngine: @unchecked Sendable {
 
         let appElement = AXUIElementCreateApplication(targetApp.processIdentifier)
 
-        // 1. Check focused window
+        // 1. Check focused window if it is resizable
         var focusedVal: AnyObject?
         if AXUIElementCopyAttributeValue(appElement, kAXFocusedWindowAttribute as CFString, &focusedVal) == .success,
-           let window = focusedVal {
-            return (window as! AXUIElement)
+           let window = focusedVal as! AXUIElement?,
+           isWindowResizable(window) {
+            return window
         }
 
-        // 2. Check main window (Messages, Safari, Finder often keep main window when focus shifts)
+        // 2. Check main window (Messages, Safari, Finder often keep main window when focus is in a popover)
         var mainVal: AnyObject?
         if AXUIElementCopyAttributeValue(appElement, kAXMainWindowAttribute as CFString, &mainVal) == .success,
-           let window = mainVal {
-            return (window as! AXUIElement)
+           let window = mainVal as! AXUIElement?,
+           isWindowResizable(window) {
+            return window
         }
 
-        // 3. Fallback: Find first standard, resizable window in windows list
+        // 3. Fallback: Search all application windows for the first resizable standard window
         var windowsValue: AnyObject?
         if AXUIElementCopyAttributeValue(appElement, kAXWindowsAttribute as CFString, &windowsValue) == .success,
            let windows = windowsValue as? [AXUIElement] {
-            for win in windows {
-                if let frame = try? getWindowFrame(element: win), frame.width >= 150 && frame.height >= 150 {
-                    return win
-                }
+            for win in windows where isWindowResizable(win) {
+                return win
             }
-            if let first = windows.first {
-                return first
-            }
+        }
+
+        // 4. Last resort: return focusedVal or mainVal or first window
+        if let window = (focusedVal ?? mainVal) as! AXUIElement? {
+            return window
         }
 
         throw AccessibilityError.noFocusedWindow
@@ -107,28 +122,28 @@ public final class AccessibilityEngine: @unchecked Sendable {
 
         let myPID = ProcessInfo.processInfo.processIdentifier
 
-        // If preferred app given and not self, try it first
+        // 1. Try preferred app first if valid
         if let app = preferredApp, app.processIdentifier != myPID {
             if let result = try? getWindowTarget(for: app) {
                 return result
             }
         }
 
-        // 1. Try system-wide focused application
+        // 2. Try system-wide focused application
         let systemWide = AXUIElementCreateSystemWide()
         var focusedAppVal: AnyObject?
         if AXUIElementCopyAttributeValue(systemWide, kAXFocusedApplicationAttribute as CFString, &focusedAppVal) == .success,
            let focusedAppElement = focusedAppVal {
             var pid: pid_t = 0
             AXUIElementGetPid(focusedAppElement as! AXUIElement, &pid)
-            if pid != myPID, let app = NSRunningApplication(processIdentifier: pid) {
+            if pid != myPID, let app = NSRunningApplication(processIdentifier: pid), app.activationPolicy == .regular {
                 if let result = try? getWindowTarget(for: app) {
                     return result
                 }
             }
         }
 
-        // 2. Query CoreGraphics for exact Z-order of on-screen windows (top to bottom)
+        // 3. Query CoreGraphics for exact Z-order of on-screen windows (top to bottom)
         guard let list = CGWindowListCopyWindowInfo([.optionOnScreenOnly, .excludeDesktopElements], kCGNullWindowID) as? [[String: Any]] else {
             throw AccessibilityError.noFocusedWindow
         }
@@ -199,8 +214,27 @@ public final class AccessibilityEngine: @unchecked Sendable {
         return CGRect(origin: point, size: size)
     }
 
-    /// Moves and resizes window to target AX frame using 4-pass constraint resolution
+    /// Moves and resizes window to target AX frame with Apple App (Messages/Safari) workarounds
     public func setWindowFrame(_ newFrame: CGRect, element: AXUIElement) throws {
+        var pid: pid_t = 0
+        AXUIElementGetPid(element, &pid)
+        let appElement = AXUIElementCreateApplication(pid)
+
+        // Workaround for macOS 14+ Apple apps (Messages, Safari, Notes)
+        // If AXEnhancedUserInterface is active, Apple apps resist programatic AX resizing.
+        var enhancedUIVal: AnyObject?
+        let hadEnhancedUI = (AXUIElementCopyAttributeValue(appElement, "AXEnhancedUserInterface" as CFString, &enhancedUIVal) == .success) && (enhancedUIVal as? Bool == true)
+
+        if hadEnhancedUI {
+            _ = AXUIElementSetAttributeValue(appElement, "AXEnhancedUserInterface" as CFString, kCFBooleanFalse)
+        }
+
+        defer {
+            if hadEnhancedUI {
+                _ = AXUIElementSetAttributeValue(appElement, "AXEnhancedUserInterface" as CFString, kCFBooleanTrue)
+            }
+        }
+
         var point = newFrame.origin
         var size = newFrame.size
 
@@ -210,7 +244,10 @@ public final class AccessibilityEngine: @unchecked Sendable {
         }
 
         // 4-step sequence (Rectangle pattern):
-        // Handles both window expanding and window shrinking without hitting screen bounds clamping
+        // 1. Set Size (shrinks if needed so new position doesn't collide with screen bounds)
+        // 2. Set Position (moves to target origin)
+        // 3. Set Size (expands window if it was smaller than target)
+        // 4. Set Position (nudges into final position)
         _ = AXUIElementSetAttributeValue(element, kAXSizeAttribute as CFString, sizeValue)
         _ = AXUIElementSetAttributeValue(element, kAXPositionAttribute as CFString, posValue)
         let sizeErr = AXUIElementSetAttributeValue(element, kAXSizeAttribute as CFString, sizeValue)
@@ -233,7 +270,6 @@ public final class AccessibilityEngine: @unchecked Sendable {
             !$0.isHidden
         }
 
-        // Put active app first so it gets the master/primary slot
         let sortedApps = apps.sorted { app1, _ in app1.isActive }
 
         for app in sortedApps {
@@ -251,12 +287,11 @@ public final class AccessibilityEngine: @unchecked Sendable {
                     continue
                 }
 
-                guard let frame = try? getWindowFrame(element: winElement),
-                      frame.width >= 150, frame.height >= 150 else {
+                guard isWindowResizable(winElement),
+                      let frame = try? getWindowFrame(element: winElement) else {
                     continue
                 }
 
-                // Check if window intersects screen bounds
                 let windowCenter = CGPoint(x: frame.midX, y: frame.midY)
                 if screen.axFrame.contains(windowCenter) || screen.axVisibleFrame.intersects(frame) {
                     var titleVal: AnyObject?

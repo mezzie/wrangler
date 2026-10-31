@@ -58,21 +58,15 @@ public final class WindowManagerCoordinator: ObservableObject {
 
     private func setupSelectionCallbacks() {
         selectionModel.onSelectionChanged = { [weak self] selection in
-            Task { @MainActor in
-                self?.handleSelectionChanged(selection)
-            }
+            self?.handleSelectionChanged(selection)
         }
 
         selectionModel.onSelectionCommitted = { [weak self] selection in
-            Task { @MainActor in
-                self?.handleSelectionCommitted(selection)
-            }
+            self?.handleSelectionCommitted(selection)
         }
 
         selectionModel.onCancel = { [weak self] in
-            Task { @MainActor in
-                self?.dismissOverlay()
-            }
+            self?.dismissOverlay()
         }
     }
 

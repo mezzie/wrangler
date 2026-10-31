@@ -21,20 +21,10 @@ public final class TargetPreviewPanel: NSPanel {
         self.contentView = hostingView
     }
 
-    public func updateFrame(_ cocoaFrame: CGRect, animated: Bool = true) {
+    public func updateFrame(_ cocoaFrame: CGRect) {
+        self.setFrame(cocoaFrame, display: true)
         if !self.isVisible {
-            self.setFrame(cocoaFrame, display: true)
             self.orderFront(nil)
-        } else {
-            if animated {
-                NSAnimationContext.runAnimationGroup { context in
-                    context.duration = 0.12
-                    context.timingFunction = CAMediaTimingFunction(name: .easeOut)
-                    self.animator().setFrame(cocoaFrame, display: true)
-                }
-            } else {
-                self.setFrame(cocoaFrame, display: true)
-            }
         }
     }
 
