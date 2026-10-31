@@ -50,7 +50,15 @@ cat << 'EOF' > "${APP_DIR}/Contents/Info.plist"
 EOF
 
 echo "==> Code-signing ${APP_DIR}..."
-codesign --force --deep --sign - --identifier "com.rngo.wrangler" "${APP_DIR}"
+SIGNING_IDENTITY=$(security find-identity -v -p codesigning | grep "Apple Development" | head -n 1 | awk -F '"' '{print $2}' || true)
+
+if [ -n "${SIGNING_IDENTITY}" ]; then
+    echo "    Using Keychain certificate: ${SIGNING_IDENTITY}"
+    codesign --force --deep --sign "${SIGNING_IDENTITY}" "${APP_DIR}"
+else
+    echo "    Using ad-hoc signature (-)"
+    codesign --force --deep --sign - --identifier "com.rngo.wrangler" "${APP_DIR}"
+fi
 
 echo "==> Wrangler.app assembled successfully at ${APP_DIR}!"
 echo "    To launch: open ${APP_DIR}"
