@@ -104,7 +104,16 @@ public final class StatusBarController {
         prefsItem.target = self
         menu.addItem(prefsItem)
 
-        // 6. Check Permissions
+        // 6. Check for Updates
+        let updateItem = NSMenuItem(
+            title: "Check for Updates...",
+            action: #selector(checkForUpdatesClicked),
+            keyEquivalent: ""
+        )
+        updateItem.target = self
+        menu.addItem(updateItem)
+
+        // 7. Check Permissions
         let permItem = NSMenuItem(title: "Check Accessibility Permissions...", action: #selector(checkPermClicked), keyEquivalent: "")
         permItem.target = self
         menu.addItem(permItem)
@@ -146,6 +155,12 @@ public final class StatusBarController {
 
     @objc private func preferencesClicked() {
         PreferencesWindowController.shared.showPreferences()
+    }
+
+    @objc private func checkForUpdatesClicked() {
+        Task {
+            await UpdateManager.shared.checkForUpdates(silent: false)
+        }
     }
 
     @objc private func checkPermClicked() {

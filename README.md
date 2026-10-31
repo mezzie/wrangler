@@ -34,7 +34,8 @@ No background daemons requiring SIP to be disabled. 100% native Swift, AppKit, a
 - 🧩 **Stage Manager Aware**: Automatically detects macOS Stage Manager and reserves margin space so windows never overlap your stage thumbnails.
 - 🎨 **Ghost Destination Preview**: A real-time translucent blueprint outlines exactly where the window will land before you release the mouse.
 - ⏪ **Undo / Restore**: Changed your mind? Press **`Option + Command + Z`** to instantly restore any window to its prior frame.
-- ⚙️ **Preferences Window**: Press **`Command + ,`** from the menu bar to customize inner window gaps (0–32px), outer screen margins (0–40px), and behavior toggles.
+- 🚀 **In-App Auto-Updates**: Checks for updates from GitHub Releases and upgrades in place with one-click restart (Docker Desktop style).
+- ⚙️ **Preferences Window**: Press **`Command + ,`** from the menu bar to customize inner window gaps (0–32px), outer screen margins (0–40px), and behavior toggles in a clean sidebar view.
 
 ---
 

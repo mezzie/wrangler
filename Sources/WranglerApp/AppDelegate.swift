@@ -43,6 +43,12 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         // Start drag-to-snap zones monitor
         SnapZoneMonitor.shared.start()
 
+        // Check for updates in background (silent)
+        Task {
+            try? await Task.sleep(nanoseconds: 3_000_000_000)
+            await UpdateManager.shared.checkForUpdates(silent: true)
+        }
+
         // Prompt for Accessibility if not granted yet
         _ = AccessibilityEngine.isTrusted(promptIfNeeded: true)
 

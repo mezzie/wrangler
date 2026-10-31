@@ -8,6 +8,7 @@ echo "==> Building Wrangler (release mode)..."
 cd "${ROOT_DIR}"
 swift build -c release --product Wrangler
 
+VERSION="${1:-1.4.0}"
 BIN_PATH="${ROOT_DIR}/.build/release/Wrangler"
 APP_DIR="${ROOT_DIR}/build/Wrangler.app"
 
@@ -34,9 +35,9 @@ cat << 'EOF' > "${APP_DIR}/Contents/Info.plist"
     <key>CFBundlePackageType</key>
     <string>APPL</string>
     <key>CFBundleShortVersionString</key>
-    <string>1.0.0</string>
+    <string>${VERSION}</string>
     <key>CFBundleVersion</key>
-    <string>1</string>
+    <string>${VERSION}</string>
     <key>LSMinimumSystemVersion</key>
     <string>13.0</string>
     <key>LSUIElement</key>
