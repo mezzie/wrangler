@@ -1,0 +1,114 @@
+import XCTest
+@testable import WranglerCore
+
+final class SnapZoneEngineTests: XCTestCase {
+    let screen = ScreenInfo(
+        id: 1,
+        frame: CGRect(x: 0, y: 0, width: 2560, height: 1080),
+        visibleFrame: CGRect(x: 0, y: 78, width: 2560, height: 972),
+        axFrame: CGRect(x: 0, y: 0, width: 2560, height: 1080),
+        axVisibleFrame: CGRect(x: 0, y: 30, width: 2560, height: 972)
+    )
+
+    func testLeftEdge50Split() {
+        // Cursor at left edge (X = 5, Y = 500 in Cocoa)
+        let point = CGPoint(x: 5, y: 500)
+        let zone = SnapZoneEngine.matchZone(
+            mousePoint: point,
+            screen: screen,
+            template: .twoColumns,
+            gap: 8,
+            outerMargin: 8,
+            threshold: 25
+        )
+
+        XCTAssertNotNil(zone)
+        // Usable width = 2560 - 16 = 2544. Half = (2544 - 8) / 2 = 1268
+        XCTAssertEqual(zone?.origin.x, 8)
+        XCTAssertEqual(zone?.width, 1268)
+        XCTAssertEqual(zone?.height, 956)
+    }
+
+    func testRightEdge50Split() {
+        // Cursor at right edge (X = 2555, Y = 500 in Cocoa)
+        let point = CGPoint(x: 2555, y: 500)
+        let zone = SnapZoneEngine.matchZone(
+            mousePoint: point,
+            screen: screen,
+            template: .twoColumns,
+            gap: 8,
+            outerMargin: 8,
+            threshold: 25
+        )
+
+        XCTAssertNotNil(zone)
+        XCTAssertEqual(zone?.origin.x, 8 + 1268 + 8) // 1284
+        XCTAssertEqual(zone?.width, 1268)
+    }
+
+    func testTopEdgeMaximize() {
+        // Cursor at top center (X = 1280, Y = 1045 in Cocoa)
+        let point = CGPoint(x: 1280, y: 1045)
+        let zone = SnapZoneEngine.matchZone(
+            mousePoint: point,
+            screen: screen,
+            template: .twoColumns,
+            gap: 8,
+            outerMargin: 8,
+            threshold: 25
+        )
+
+        XCTAssertNotNil(zone)
+        XCTAssertEqual(zone?.origin.x, 8)
+        XCTAssertEqual(zone?.origin.y, 38)
+        XCTAssertEqual(zone?.width, 2544)
+    }
+
+    func testCenterScreenReturnsNil() {
+        // Cursor in middle of screen (X = 500, Y = 500) -> Should NOT trigger any snap zone
+        let point = CGPoint(x: 500, y: 500)
+        let zone = SnapZoneEngine.matchZone(
+            mousePoint: point,
+            screen: screen,
+            template: .twoColumns,
+            threshold: 25
+        )
+
+        XCTAssertNil(zone)
+    }
+
+    func testTopLeftCornerQuarter() {
+        let point = CGPoint(x: 5, y: 1045)
+        let zone = SnapZoneEngine.matchZone(
+            mousePoint: point,
+            screen: screen,
+            template: .twoColumns,
+            gap: 8,
+            outerMargin: 8,
+            threshold: 25
+        )
+
+        XCTAssertNotNil(zone)
+        XCTAssertEqual(zone?.origin.x, 8)
+        XCTAssertEqual(zone?.origin.y, 38)
+        // Quarter width = (2544 - 8) / 2 = 1268. Height = (956 - 8) / 2 = 474
+        XCTAssertEqual(zone?.width, 1268)
+        XCTAssertEqual(zone?.height, 474)
+    }
+
+    func testThreeColumnsSplit() {
+        let point = CGPoint(x: 5, y: 500)
+        let zone = SnapZoneEngine.matchZone(
+            mousePoint: point,
+            screen: screen,
+            template: .threeColumns,
+            gap: 8,
+            outerMargin: 8,
+            threshold: 25
+        )
+
+        XCTAssertNotNil(zone)
+        // (2544 - 16) / 3 = 842.66 -> 843
+        XCTAssertEqual(zone?.width, 843)
+    }
+}

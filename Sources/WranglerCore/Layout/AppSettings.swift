@@ -8,6 +8,9 @@ public struct AppSettings: Codable, Equatable, Sendable {
     public var avoidStageManager: Bool
     public var stageManagerMargin: CGFloat
     public var cycleRepeatedSnaps: Bool
+    public var enableSnapZones: Bool
+    public var snapZoneTemplate: SnapZoneTemplate
+    public var snapTriggerThreshold: CGFloat
 
     public init(
         columns: Int = 4,
@@ -16,7 +19,10 @@ public struct AppSettings: Codable, Equatable, Sendable {
         outerMargin: CGFloat = 8,
         avoidStageManager: Bool = true,
         stageManagerMargin: CGFloat = 72,
-        cycleRepeatedSnaps: Bool = true
+        cycleRepeatedSnaps: Bool = true,
+        enableSnapZones: Bool = true,
+        snapZoneTemplate: SnapZoneTemplate = .twoColumns,
+        snapTriggerThreshold: CGFloat = 25
     ) {
         self.columns = max(2, min(columns, 16))
         self.rows = max(1, min(rows, 16))
@@ -25,6 +31,9 @@ public struct AppSettings: Codable, Equatable, Sendable {
         self.avoidStageManager = avoidStageManager
         self.stageManagerMargin = stageManagerMargin
         self.cycleRepeatedSnaps = cycleRepeatedSnaps
+        self.enableSnapZones = enableSnapZones
+        self.snapZoneTemplate = snapZoneTemplate
+        self.snapTriggerThreshold = max(10, min(snapTriggerThreshold, 100))
     }
 
     public static let `default` = AppSettings()

@@ -26,6 +26,7 @@ No background daemons requiring SIP to be disabled. 100% native Swift, AppKit, a
 ## ✨ Features
 
 - 🎯 **Interactive Grid Overlay**: Hit **`Option + Space`** to summon a floating glass grid at your mouse cursor. Click and drag across cells to resize and position any window.
+- 🧲 **Snap Zones (Drag-to-Snap)**: Drag any window by its title bar to screen edges or corners to snap into custom templates (50/50 Ultrawide split, 33/33/33 three-column split, or 25|50|25 center focus).
 - 🪟 **AeroSpace-Style Auto-Tiling**: Press **`⌃ ⌥ T`** (or click "Auto-Tile" on the HUD) to instantly organize all open windows on your display into a clean, non-overlapping Binary Space Partitioned (BSP) tree. No manual placement needed.
 - 📐 **Dynamic Grid Sizes**: Switch instantly between **`2×2`**, **`3×3`**, **`4×4`**, **`6×4`**, or fine-tune rows and columns with live steppers (`-` / `+`).
 - 🖥️ **Multi-Display Hopping**: Throw windows to your next or previous screen instantly with **`⌃ ⌥ →`** or **`⌃ ⌥ ←`**, automatically scaling to the target display's dimensions.

@@ -9,13 +9,74 @@ public struct PreferencesView: View {
     public var body: some View {
         ScrollView(.vertical, showsIndicators: false) {
             VStack(spacing: 16) {
+                snapZonesSection
                 gridSection
                 behaviorSection
                 shortcutsSection
             }
             .padding(20)
         }
-        .frame(width: 480, height: 530)
+        .frame(width: 480, height: 580)
+    }
+
+    // MARK: - Snap Zones Card
+    @ViewBuilder
+    private var snapZonesSection: some View {
+        GroupBox(label: Label("Snap Zones (Drag-to-Snap)", systemImage: "rectangle.split.2x1")) {
+            VStack(alignment: .leading, spacing: 12) {
+                Toggle(isOn: Binding(
+                    get: { settings.enableSnapZones },
+                    set: { settings.enableSnapZones = $0; saveSettings() }
+                )) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Enable Drag-to-Snap Zones")
+                            .font(.body)
+                        Text("Drag a window by its title bar to screen edges to snap into template tiles")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                }
+
+                if settings.enableSnapZones {
+                    Divider()
+
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text("Template Layout:")
+                            .font(.callout)
+                            .foregroundColor(.secondary)
+
+                        Picker("", selection: Binding(
+                            get: { settings.snapZoneTemplate },
+                            set: { settings.snapZoneTemplate = $0; saveSettings() }
+                        )) {
+                            ForEach(SnapZoneTemplate.allCases, id: \.self) { t in
+                                Text(t.displayName).tag(t)
+                            }
+                        }
+                        .labelsHidden()
+                        .pickerStyle(.menu)
+                    }
+
+                    HStack {
+                        Text("Edge Trigger:")
+                            .font(.callout)
+                            .foregroundColor(.secondary)
+                            .frame(width: 90, alignment: .leading)
+
+                        Slider(value: Binding(
+                            get: { Double(settings.snapTriggerThreshold) },
+                            set: { settings.snapTriggerThreshold = CGFloat($0); saveSettings() }
+                        ), in: 15...60, step: 5)
+
+                        Text("\(Int(settings.snapTriggerThreshold)) px")
+                            .font(.system(.body, design: .monospaced))
+                            .frame(width: 45, alignment: .leading)
+                    }
+                }
+            }
+            .padding(.vertical, 8)
+            .padding(.horizontal, 6)
+        }
     }
 
     // MARK: - Grid & Spacing Card

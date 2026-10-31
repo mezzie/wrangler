@@ -40,6 +40,9 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         }
         GlobalHotKeyManager.shared.registerDefaultHotKeys()
 
+        // Start drag-to-snap zones monitor
+        SnapZoneMonitor.shared.start()
+
         // Prompt for Accessibility if not granted yet
         _ = AccessibilityEngine.isTrusted(promptIfNeeded: true)
 
@@ -48,5 +51,6 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
 
     public func applicationWillTerminate(_ notification: Notification) {
         GlobalHotKeyManager.shared.unregisterAll()
+        SnapZoneMonitor.shared.stop()
     }
 }
