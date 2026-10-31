@@ -17,7 +17,8 @@ public final class GridOverlayPanel: NSPanel {
         self.isOpaque = false
         self.backgroundColor = .clear
         self.hasShadow = false
-        self.isMovableByWindowBackground = true
+        self.isMovableByWindowBackground = false
+        self.acceptsMouseMovedEvents = true
         self.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .stationary]
 
         let hostingView = NSHostingView(rootView: rootView)

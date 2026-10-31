@@ -17,9 +17,39 @@ public final class WindowManagerCoordinator: ObservableObject {
     private var currentTargetElement: AXUIElement?
     private var currentTarget: WindowTarget?
     private var activeScreen: ScreenInfo?
+    private var lastActiveApp: NSRunningApplication?
 
     private init() {
         setupSelectionCallbacks()
+        setupAppTracking()
+    }
+
+    private func setupAppTracking() {
+        let current = NSWorkspace.shared.frontmostApplication
+        if current?.processIdentifier != ProcessInfo.processInfo.processIdentifier {
+            lastActiveApp = current
+        }
+
+        NSWorkspace.shared.notificationCenter.addObserver(
+            forName: NSWorkspace.didActivateApplicationNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] notif in
+            guard let app = notif.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication else { return }
+            if app.processIdentifier != ProcessInfo.processInfo.processIdentifier {
+                Task { @MainActor in
+                    self?.lastActiveApp = app
+                }
+            }
+        }
+    }
+
+    private func resolveTargetApp() -> NSRunningApplication? {
+        let front = NSWorkspace.shared.frontmostApplication
+        if let front = front, front.processIdentifier != ProcessInfo.processInfo.processIdentifier {
+            return front
+        }
+        return lastActiveApp
     }
 
     private func setupSelectionCallbacks() {
@@ -51,7 +81,6 @@ public final class WindowManagerCoordinator: ObservableObject {
     }
 
     public func showOverlay() {
-        // Ensure accessibility permissions
         guard AccessibilityEngine.isTrusted(promptIfNeeded: true) else {
             let alert = NSAlert()
             alert.messageText = "Accessibility Permissions Required"
@@ -61,13 +90,15 @@ public final class WindowManagerCoordinator: ObservableObject {
             return
         }
 
-        // Grab current frontmost window before HUD takes focus
+        let appToSnap = resolveTargetApp()
+
+        // Capture target window before HUD display
         do {
-            let (element, target) = try accessibilityEngine.getWindowTarget()
+            let (element, target) = try accessibilityEngine.getWindowTarget(for: appToSnap)
             self.currentTargetElement = element
             self.currentTarget = target
         } catch {
-            print("Notice: No focused window to snap: \(error.localizedDescription)")
+            print("Notice: No target window found: \(error.localizedDescription)")
             self.currentTargetElement = nil
             self.currentTarget = nil
         }
@@ -97,7 +128,6 @@ public final class WindowManagerCoordinator: ObservableObject {
         previewPanel.hide()
         selectionModel.reset()
 
-        // Restore focus to original application
         if let target = currentTarget {
             NSRunningApplication(processIdentifier: target.pid)?.activate(options: .activateIgnoringOtherApps)
         }
@@ -148,8 +178,10 @@ public final class WindowManagerCoordinator: ObservableObject {
             return
         }
 
+        let appToSnap = resolveTargetApp()
+
         do {
-            let (element, target) = try accessibilityEngine.getWindowTarget()
+            let (element, target) = try accessibilityEngine.getWindowTarget(for: appToSnap)
             let targetRectAX = GridMath.calculateRect(
                 for: layout.selection,
                 in: screen.axVisibleFrame,
@@ -157,19 +189,23 @@ public final class WindowManagerCoordinator: ObservableObject {
             )
             windowHistory.push(pid: target.pid, frame: target.frame)
             try accessibilityEngine.setWindowFrame(targetRectAX, element: element)
+            NSRunningApplication(processIdentifier: target.pid)?.activate(options: .activateIgnoringOtherApps)
         } catch {
             print("Snap preset error: \(error.localizedDescription)")
         }
     }
 
     public func undoLastSnap() {
+        let appToSnap = resolveTargetApp()
+
         do {
-            let (element, target) = try accessibilityEngine.getWindowTarget()
+            let (element, target) = try accessibilityEngine.getWindowTarget(for: appToSnap)
             guard let priorFrame = windowHistory.pop(pid: target.pid) else {
                 print("No prior frame found in history for PID \(target.pid)")
                 return
             }
             try accessibilityEngine.setWindowFrame(priorFrame, element: element)
+            NSRunningApplication(processIdentifier: target.pid)?.activate(options: .activateIgnoringOtherApps)
         } catch {
             print("Undo error: \(error.localizedDescription)")
         }

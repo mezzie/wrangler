@@ -59,30 +59,43 @@ public final class AccessibilityEngine: @unchecked Sendable {
         return AXIsProcessTrusted()
     }
 
-    /// Retrieves frontmost focused AXUIElement window
-    public func getFocusedWindowElement() throws -> AXUIElement {
+    /// Retrieves focused or primary AXUIElement window for given app, or system frontmost
+    public func getFocusedWindowElement(for app: NSRunningApplication? = nil) throws -> AXUIElement {
         guard Self.isTrusted() else {
             throw AccessibilityError.permissionDenied
         }
 
-        guard let frontApp = NSWorkspace.shared.frontmostApplication else {
+        let targetApp: NSRunningApplication
+        if let app = app {
+            targetApp = app
+        } else if let front = NSWorkspace.shared.frontmostApplication,
+                  front.processIdentifier != ProcessInfo.processInfo.processIdentifier {
+            targetApp = front
+        } else {
             throw AccessibilityError.noFocusedApplication
         }
 
-        let appElement = AXUIElementCreateApplication(frontApp.processIdentifier)
+        let appElement = AXUIElementCreateApplication(targetApp.processIdentifier)
         var windowValue: AnyObject?
         let result = AXUIElementCopyAttributeValue(appElement, kAXFocusedWindowAttribute as CFString, &windowValue)
 
-        guard result == .success, let window = windowValue else {
-            throw AccessibilityError.noFocusedWindow
+        if result == .success, let window = windowValue {
+            return (window as! AXUIElement)
         }
 
-        return (window as! AXUIElement)
+        // Fallback: Check all application windows if focused window attribute is temporarily unset
+        var windowsValue: AnyObject?
+        let winResult = AXUIElementCopyAttributeValue(appElement, kAXWindowsAttribute as CFString, &windowsValue)
+        if winResult == .success, let windows = windowsValue as? [AXUIElement], let first = windows.first {
+            return first
+        }
+
+        throw AccessibilityError.noFocusedWindow
     }
 
     /// Reads window metadata and current frame in AX coordinates
-    public func getWindowTarget(for windowElement: AXUIElement? = nil) throws -> (element: AXUIElement, target: WindowTarget) {
-        let element = try (windowElement ?? getFocusedWindowElement())
+    public func getWindowTarget(for app: NSRunningApplication? = nil) throws -> (element: AXUIElement, target: WindowTarget) {
+        let element = try getFocusedWindowElement(for: app)
 
         var pid: pid_t = 0
         AXUIElementGetPid(element, &pid)

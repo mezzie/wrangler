@@ -48,57 +48,8 @@ public struct GridInteractiveView: View {
 
     @ViewBuilder
     private var gridMatrix: some View {
-        GeometryReader { geo in
-            let cols = CGFloat(model.config.columns)
-            let rows = CGFloat(model.config.rows)
-            let cellWidth = max(8, (geo.size.width - (cols - 1) * 4) / cols)
-            let cellHeight = max(8, (geo.size.height - (rows - 1) * 4) / rows)
-
-            VStack(spacing: 4) {
-                ForEach(0..<model.config.rows, id: \.self) { row in
-                    HStack(spacing: 4) {
-                        ForEach(0..<model.config.columns, id: \.self) { col in
-                            cellView(col: col, row: row, width: cellWidth, height: cellHeight)
-                        }
-                    }
-                }
-            }
-            .contentShape(Rectangle())
-            .gesture(dragGesture(size: geo.size))
-        }
-        .frame(height: 160)
-    }
-
-    @ViewBuilder
-    private func cellView(col: Int, row: Int, width: CGFloat, height: CGFloat) -> some View {
-        let isSelected = model.isCellSelected(col: col, row: row)
-        RoundedRectangle(cornerRadius: 6, style: .continuous)
-            .fill(isSelected ? Color.accentColor : Color.primary.opacity(0.08))
-            .overlay(
-                RoundedRectangle(cornerRadius: 6, style: .continuous)
-                    .strokeBorder(isSelected ? Color.white.opacity(0.4) : Color.primary.opacity(0.12), lineWidth: 1)
-            )
-            .frame(width: width, height: height)
-    }
-
-    private func dragGesture(size: CGSize) -> some Gesture {
-        DragGesture(minimumDistance: 0)
-            .onChanged { value in
-                let loc = value.location
-                guard size.width > 0, size.height > 0 else { return }
-
-                let col = max(0, min(model.config.columns - 1, Int(loc.x / (size.width / CGFloat(model.config.columns)))))
-                let row = max(0, min(model.config.rows - 1, Int(loc.y / (size.height / CGFloat(model.config.rows)))))
-
-                if model.dragStart == nil {
-                    model.dragBegan(col: col, row: row)
-                } else {
-                    model.cellHovered(col: col, row: row)
-                }
-            }
-            .onEnded { _ in
-                model.dragEnded()
-            }
+        GridCanvasRepresentable(model: model)
+            .frame(height: 160)
     }
 
     @ViewBuilder
