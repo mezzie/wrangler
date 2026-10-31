@@ -41,7 +41,7 @@ public final class WindowManagerCoordinator: ObservableObject {
         ) { [weak self] notif in
             guard let app = notif.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication else { return }
             if app.processIdentifier != ProcessInfo.processInfo.processIdentifier {
-                Task { @MainActor in
+                MainActor.assumeIsolated {
                     self?.lastActiveApp = app
                 }
             }
