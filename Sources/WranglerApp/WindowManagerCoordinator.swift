@@ -120,6 +120,9 @@ public final class WindowManagerCoordinator: ObservableObject {
             onHopNextScreen: { [weak self] in
                 self?.moveToNextDisplay()
             },
+            onAutoTile: { [weak self] in
+                self?.autoTileCurrentDisplay()
+            },
             hasMultipleScreens: allScreens.count > 1
         )
 
@@ -255,6 +258,38 @@ public final class WindowManagerCoordinator: ObservableObject {
         } catch {
             print("Move to previous display error: \(error.localizedDescription)")
         }
+    }
+
+    /// Automatically tiles all open windows on the active display (AeroSpace / i3 style)
+    public func autoTileCurrentDisplay() {
+        guard let screen = displayManager.currentScreen() else { return }
+        let settings = AppSettings.load()
+
+        let windows = accessibilityEngine.getVisibleWindows(on: screen)
+        guard !windows.isEmpty else {
+            print("Notice: No visible windows found on display to auto-tile.")
+            return
+        }
+
+        let frames = AutoTileEngine.calculateFrames(
+            count: windows.count,
+            in: screen.axVisibleFrame,
+            gap: settings.gap,
+            outerMargin: settings.outerMargin
+        )
+
+        for (index, item) in windows.enumerated() {
+            guard index < frames.count else { break }
+            let targetFrame = frames[index]
+            windowHistory.push(pid: item.target.pid, frame: item.target.frame)
+            do {
+                try accessibilityEngine.setWindowFrame(targetFrame, element: item.element)
+            } catch {
+                print("Failed to auto-tile window '\(item.target.appName ?? "")': \(error.localizedDescription)")
+            }
+        }
+
+        dismissOverlay()
     }
 
     public func undoLastSnap() {

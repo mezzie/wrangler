@@ -26,6 +26,7 @@ No background daemons requiring SIP to be disabled. 100% native Swift, AppKit, a
 ## ✨ Features
 
 - 🎯 **Interactive Grid Overlay**: Hit **`Option + Space`** to summon a floating glass grid at your mouse cursor. Click and drag across cells to resize and position any window.
+- 🪟 **AeroSpace-Style Auto-Tiling**: Press **`⌃ ⌥ T`** (or click "Auto-Tile" on the HUD) to instantly organize all open windows on your display into a clean, non-overlapping Binary Space Partitioned (BSP) tree. No manual placement needed.
 - 📐 **Dynamic Grid Sizes**: Switch instantly between **`2×2`**, **`3×3`**, **`4×4`**, **`6×4`**, or fine-tune rows and columns with live steppers (`-` / `+`).
 - 🖥️ **Multi-Display Hopping**: Throw windows to your next or previous screen instantly with **`⌃ ⌥ →`** or **`⌃ ⌥ ←`**, automatically scaling to the target display's dimensions.
 - 🔁 **Window Size Cycling**: Pressing Left Half or Right Half repeatedly cycles window widths: **`½ → ⅔ → ⅓ → ½`** (Rectangle / Lasso pattern).
@@ -41,6 +42,7 @@ No background daemons requiring SIP to be disabled. 100% native Swift, AppKit, a
 | Shortcut | Action | Description |
 | :--- | :--- | :--- |
 | **`⌥ Space`** | **Show Grid HUD** | Opens floating grid overlay at current cursor position |
+| **`⌃ ⌥ T`** | **Auto-Tile Desktop** | Automatically tiles all open windows on display (BSP tree) |
 | **`⌃ ⌥ →`** | **Next Display** | Throws focused window to the next monitor |
 | **`⌃ ⌥ ←`** | **Prev Display** | Throws focused window to the previous monitor |
 | **`⌥ ⌘ Z`** | **Undo Snap** | Restores focused window to its prior size and position |

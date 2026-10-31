@@ -6,6 +6,7 @@ public struct GridInteractiveView: View {
     public let appName: String?
     public let onUndo: (() -> Void)?
     public let onHopNextScreen: (() -> Void)?
+    public let onAutoTile: (() -> Void)?
     public let hasMultipleScreens: Bool
 
     public init(
@@ -13,12 +14,14 @@ public struct GridInteractiveView: View {
         appName: String? = nil,
         onUndo: (() -> Void)? = nil,
         onHopNextScreen: (() -> Void)? = nil,
+        onAutoTile: (() -> Void)? = nil,
         hasMultipleScreens: Bool = false
     ) {
         self.model = model
         self.appName = appName
         self.onUndo = onUndo
         self.onHopNextScreen = onHopNextScreen
+        self.onAutoTile = onAutoTile
         self.hasMultipleScreens = hasMultipleScreens
     }
 
@@ -130,9 +133,9 @@ public struct GridInteractiveView: View {
                 }
             }
 
-            QuickPresetButton(title: "Center", systemImage: "circle.center.radial") {
-                if let layout = NamedLayout.standardPresets.first(where: { $0.id == "center" }) {
-                    model.commitPreset(layout)
+            if let onAutoTile = onAutoTile {
+                QuickPresetButton(title: "Auto-Tile", systemImage: "square.split.2x2") {
+                    onAutoTile()
                 }
             }
 

@@ -10,6 +10,7 @@ public final class GlobalHotKeyManager {
     public var onHotKeyPressed: (() -> Void)?
     public var onNextDisplayPressed: (() -> Void)?
     public var onPrevDisplayPressed: (() -> Void)?
+    public var onAutoTilePressed: (() -> Void)?
 
     private init() {}
 
@@ -44,6 +45,8 @@ public final class GlobalHotKeyManager {
                     manager.onNextDisplayPressed?()
                 case 3:
                     manager.onPrevDisplayPressed?()
+                case 4:
+                    manager.onAutoTilePressed?()
                 default:
                     break
                 }
@@ -68,6 +71,9 @@ public final class GlobalHotKeyManager {
 
         // 3. Control + Option + Left Arrow (123) -> Previous Display
         registerSingleHotKey(id: 3, keyCode: 123, carbonModifiers: UInt32(controlKey | optionKey))
+
+        // 4. Control + Option + T (17) -> Auto-Tile Active Display (AeroSpace style)
+        registerSingleHotKey(id: 4, keyCode: 17, carbonModifiers: UInt32(controlKey | optionKey))
     }
 
     private func registerSingleHotKey(id: UInt32, keyCode: UInt32, carbonModifiers: UInt32) {

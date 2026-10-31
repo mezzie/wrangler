@@ -34,6 +34,16 @@ public final class StatusBarController {
         showOverlayItem.target = self
         menu.addItem(showOverlayItem)
 
+        // Auto-Tile
+        let autoTileItem = NSMenuItem(
+            title: "Auto-Tile Active Display",
+            action: #selector(autoTileClicked),
+            keyEquivalent: "t"
+        )
+        autoTileItem.keyEquivalentModifierMask = [.control, .option]
+        autoTileItem.target = self
+        menu.addItem(autoTileItem)
+
         menu.addItem(NSMenuItem.separator())
 
         // 2. Display Hop
@@ -111,6 +121,10 @@ public final class StatusBarController {
 
     @objc private func showOverlayClicked() {
         coordinator.showOverlay()
+    }
+
+    @objc private func autoTileClicked() {
+        coordinator.autoTileCurrentDisplay()
     }
 
     @objc private func nextDisplayClicked() {

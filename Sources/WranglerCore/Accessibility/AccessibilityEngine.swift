@@ -165,4 +165,61 @@ public final class AccessibilityEngine: @unchecked Sendable {
             throw AccessibilityError.setAttributeFailed(sizeErr)
         }
     }
+
+    /// Enumerates all visible, standard application windows currently on a specific screen
+    public func getVisibleWindows(on screen: ScreenInfo) -> [(element: AXUIElement, target: WindowTarget)] {
+        guard Self.isTrusted() else { return [] }
+
+        var results: [(element: AXUIElement, target: WindowTarget)] = []
+        let apps = NSWorkspace.shared.runningApplications.filter {
+            $0.activationPolicy == .regular &&
+            $0.processIdentifier != ProcessInfo.processInfo.processIdentifier &&
+            !$0.isTerminated &&
+            !$0.isHidden
+        }
+
+        // Put active app first so it gets the master/primary slot
+        let sortedApps = apps.sorted { app1, _ in app1.isActive }
+
+        for app in sortedApps {
+            let appElement = AXUIElementCreateApplication(app.processIdentifier)
+            var windowsVal: AnyObject?
+            guard AXUIElementCopyAttributeValue(appElement, kAXWindowsAttribute as CFString, &windowsVal) == .success,
+                  let axWindows = windowsVal as? [AXUIElement] else {
+                continue
+            }
+
+            for winElement in axWindows {
+                var minimizedVal: AnyObject?
+                if AXUIElementCopyAttributeValue(winElement, kAXMinimizedAttribute as CFString, &minimizedVal) == .success,
+                   let isMin = minimizedVal as? Bool, isMin {
+                    continue
+                }
+
+                guard let frame = try? getWindowFrame(element: winElement),
+                      frame.width >= 150, frame.height >= 150 else {
+                    continue
+                }
+
+                // Check if window intersects screen bounds
+                let windowCenter = CGPoint(x: frame.midX, y: frame.midY)
+                if screen.axFrame.contains(windowCenter) || screen.axVisibleFrame.intersects(frame) {
+                    var titleVal: AnyObject?
+                    AXUIElementCopyAttributeValue(winElement, kAXTitleAttribute as CFString, &titleVal)
+                    let title = titleVal as? String
+
+                    let target = WindowTarget(
+                        pid: app.processIdentifier,
+                        appName: app.localizedName,
+                        bundleID: app.bundleIdentifier,
+                        windowTitle: title,
+                        frame: frame
+                    )
+                    results.append((element: winElement, target: target))
+                }
+            }
+        }
+
+        return results
+    }
 }

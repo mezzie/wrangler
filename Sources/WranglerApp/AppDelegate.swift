@@ -28,6 +28,11 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
                 WindowManagerCoordinator.shared.moveToPreviousDisplay()
             }
         }
+        GlobalHotKeyManager.shared.onAutoTilePressed = {
+            Task { @MainActor in
+                WindowManagerCoordinator.shared.autoTileCurrentDisplay()
+            }
+        }
         GlobalHotKeyManager.shared.registerDefaultHotKeys()
 
         // Prompt for Accessibility if not granted yet
