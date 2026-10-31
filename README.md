@@ -37,6 +37,11 @@ Wrangler bridges this gap. It provides a visual **HUD grid** for fast manual adj
 
 ## Quickstart
 
+### Homebrew (Recommended)
+```bash
+brew install mezzie/tap/wrangler
+```
+
 ### Direct Download
 1. Download **[Wrangler.dmg](https://github.com/mezzie/wrangler/releases/latest)**.
 2. Drag **Wrangler** into your `/Applications` directory.
