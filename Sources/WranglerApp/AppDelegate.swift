@@ -33,6 +33,11 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
                 WindowManagerCoordinator.shared.autoTileCurrentDisplay()
             }
         }
+        GlobalHotKeyManager.shared.onMaximizePressed = {
+            Task { @MainActor in
+                WindowManagerCoordinator.shared.snapFocusedWindow(preset: "full")
+            }
+        }
         GlobalHotKeyManager.shared.registerDefaultHotKeys()
 
         // Prompt for Accessibility if not granted yet

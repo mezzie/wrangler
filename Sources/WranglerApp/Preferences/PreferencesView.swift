@@ -137,6 +137,7 @@ public struct PreferencesView: View {
         GroupBox(label: Label("Keyboard Shortcuts", systemImage: "keyboard")) {
             VStack(spacing: 8) {
                 ShortcutRow(label: "Show Grid Overlay", shortcut: "⌥ Space")
+                ShortcutRow(label: "Maximize Window", shortcut: "⌃ ⌥ ↵  or  ⌃ ⌥ M")
                 ShortcutRow(label: "Auto-Tile Active Display", shortcut: "⌃ ⌥ T")
                 ShortcutRow(label: "Move to Next Display", shortcut: "⌃ ⌥ →")
                 ShortcutRow(label: "Move to Previous Display", shortcut: "⌃ ⌥ ←")

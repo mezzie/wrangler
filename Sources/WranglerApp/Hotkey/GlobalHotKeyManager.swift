@@ -11,6 +11,7 @@ public final class GlobalHotKeyManager {
     public var onNextDisplayPressed: (() -> Void)?
     public var onPrevDisplayPressed: (() -> Void)?
     public var onAutoTilePressed: (() -> Void)?
+    public var onMaximizePressed: (() -> Void)?
 
     private init() {}
 
@@ -47,6 +48,8 @@ public final class GlobalHotKeyManager {
                     manager.onPrevDisplayPressed?()
                 case 4:
                     manager.onAutoTilePressed?()
+                case 5, 6:
+                    manager.onMaximizePressed?()
                 default:
                     break
                 }
@@ -74,6 +77,12 @@ public final class GlobalHotKeyManager {
 
         // 4. Control + Option + T (17) -> Auto-Tile Active Display (AeroSpace style)
         registerSingleHotKey(id: 4, keyCode: 17, carbonModifiers: UInt32(controlKey | optionKey))
+
+        // 5. Control + Option + Return (36) -> Maximize Window
+        registerSingleHotKey(id: 5, keyCode: 36, carbonModifiers: UInt32(controlKey | optionKey))
+
+        // 6. Control + Option + M (46) -> Maximize Window (letter shortcut)
+        registerSingleHotKey(id: 6, keyCode: 46, carbonModifiers: UInt32(controlKey | optionKey))
     }
 
     private func registerSingleHotKey(id: UInt32, keyCode: UInt32, carbonModifiers: UInt32) {

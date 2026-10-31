@@ -92,9 +92,9 @@ public final class WindowManagerCoordinator: ObservableObject {
 
         let appToSnap = resolveTargetApp()
 
-        // Capture target window before HUD display
+        // Capture target window before HUD display using CoreGraphics Z-order
         do {
-            let (element, target) = try accessibilityEngine.getWindowTarget(for: appToSnap)
+            let (element, target) = try accessibilityEngine.getTopmostWindowTarget(preferredApp: appToSnap)
             self.currentTargetElement = element
             self.currentTarget = target
         } catch {
@@ -204,7 +204,7 @@ public final class WindowManagerCoordinator: ObservableObject {
         let appToSnap = resolveTargetApp()
 
         do {
-            let (element, target) = try accessibilityEngine.getWindowTarget(for: appToSnap)
+            let (element, target) = try accessibilityEngine.getTopmostWindowTarget(preferredApp: appToSnap)
             let config = GridConfig(
                 columns: layout.config.columns,
                 rows: layout.config.rows,
@@ -227,7 +227,7 @@ public final class WindowManagerCoordinator: ObservableObject {
     public func moveToNextDisplay() {
         let appToSnap = resolveTargetApp()
         do {
-            let (element, target) = try accessibilityEngine.getWindowTarget(for: appToSnap)
+            let (element, target) = try accessibilityEngine.getTopmostWindowTarget(preferredApp: appToSnap)
             guard let currentScreen = displayManager.screen(forWindowAXFrame: target.frame),
                   let nextScreen = displayManager.nextScreen(from: currentScreen) else {
                 return
@@ -245,7 +245,7 @@ public final class WindowManagerCoordinator: ObservableObject {
     public func moveToPreviousDisplay() {
         let appToSnap = resolveTargetApp()
         do {
-            let (element, target) = try accessibilityEngine.getWindowTarget(for: appToSnap)
+            let (element, target) = try accessibilityEngine.getTopmostWindowTarget(preferredApp: appToSnap)
             guard let currentScreen = displayManager.screen(forWindowAXFrame: target.frame),
                   let prevScreen = displayManager.previousScreen(from: currentScreen) else {
                 return
@@ -289,6 +289,11 @@ public final class WindowManagerCoordinator: ObservableObject {
             }
         }
 
+        // Keep topmost window focused so subsequent hotkeys target it
+        if let first = windows.first {
+            NSRunningApplication(processIdentifier: first.target.pid)?.activate(options: .activateIgnoringOtherApps)
+        }
+
         dismissOverlay()
     }
 
@@ -296,7 +301,7 @@ public final class WindowManagerCoordinator: ObservableObject {
         let appToSnap = resolveTargetApp()
 
         do {
-            let (element, target) = try accessibilityEngine.getWindowTarget(for: appToSnap)
+            let (element, target) = try accessibilityEngine.getTopmostWindowTarget(preferredApp: appToSnap)
             guard let priorFrame = windowHistory.pop(pid: target.pid) else {
                 print("No prior frame found in history for PID \(target.pid)")
                 return

@@ -1,5 +1,6 @@
 import AppKit
 import ApplicationServices
+import CoreGraphics
 import Foundation
 
 public struct WindowTarget: Sendable {
@@ -59,50 +60,98 @@ public final class AccessibilityEngine: @unchecked Sendable {
         return AXIsProcessTrusted()
     }
 
-    /// Retrieves focused or primary AXUIElement window for given app, or system frontmost
-    public func getFocusedWindowElement(for app: NSRunningApplication? = nil) throws -> AXUIElement {
+    /// Finds the focused or main window element for a specific application
+    public func getFocusedWindowElement(for targetApp: NSRunningApplication) throws -> AXUIElement {
         guard Self.isTrusted() else {
             throw AccessibilityError.permissionDenied
         }
 
-        let targetApp: NSRunningApplication
-        if let app = app {
-            targetApp = app
-        } else if let front = NSWorkspace.shared.frontmostApplication,
-                  front.processIdentifier != ProcessInfo.processInfo.processIdentifier {
-            targetApp = front
-        } else {
-            throw AccessibilityError.noFocusedApplication
-        }
-
         let appElement = AXUIElementCreateApplication(targetApp.processIdentifier)
-        var windowValue: AnyObject?
-        let result = AXUIElementCopyAttributeValue(appElement, kAXFocusedWindowAttribute as CFString, &windowValue)
 
-        if result == .success, let window = windowValue {
+        // 1. Check focused window
+        var focusedVal: AnyObject?
+        if AXUIElementCopyAttributeValue(appElement, kAXFocusedWindowAttribute as CFString, &focusedVal) == .success,
+           let window = focusedVal {
             return (window as! AXUIElement)
         }
 
-        // Fallback: Check all application windows if focused window attribute is temporarily unset
+        // 2. Check main window (Messages, Safari, Finder often keep main window when focus shifts)
+        var mainVal: AnyObject?
+        if AXUIElementCopyAttributeValue(appElement, kAXMainWindowAttribute as CFString, &mainVal) == .success,
+           let window = mainVal {
+            return (window as! AXUIElement)
+        }
+
+        // 3. Fallback: Find first standard, resizable window in windows list
         var windowsValue: AnyObject?
-        let winResult = AXUIElementCopyAttributeValue(appElement, kAXWindowsAttribute as CFString, &windowsValue)
-        if winResult == .success, let windows = windowsValue as? [AXUIElement], let first = windows.first {
-            return first
+        if AXUIElementCopyAttributeValue(appElement, kAXWindowsAttribute as CFString, &windowsValue) == .success,
+           let windows = windowsValue as? [AXUIElement] {
+            for win in windows {
+                if let frame = try? getWindowFrame(element: win), frame.width >= 150 && frame.height >= 150 {
+                    return win
+                }
+            }
+            if let first = windows.first {
+                return first
+            }
         }
 
         throw AccessibilityError.noFocusedWindow
     }
 
-    /// Reads window metadata and current frame in AX coordinates
-    public func getWindowTarget(for app: NSRunningApplication? = nil) throws -> (element: AXUIElement, target: WindowTarget) {
+    /// Finds the topmost user window target on screen using Z-order from CoreGraphics
+    public func getTopmostWindowTarget(preferredApp: NSRunningApplication? = nil) throws -> (element: AXUIElement, target: WindowTarget) {
+        guard Self.isTrusted() else {
+            throw AccessibilityError.permissionDenied
+        }
+
+        let myPID = ProcessInfo.processInfo.processIdentifier
+
+        // If preferred app given and not self, try it first
+        if let app = preferredApp, app.processIdentifier != myPID {
+            if let result = try? getWindowTarget(for: app) {
+                return result
+            }
+        }
+
+        // 1. Try system-wide focused application
+        let systemWide = AXUIElementCreateSystemWide()
+        var focusedAppVal: AnyObject?
+        if AXUIElementCopyAttributeValue(systemWide, kAXFocusedApplicationAttribute as CFString, &focusedAppVal) == .success,
+           let focusedAppElement = focusedAppVal {
+            var pid: pid_t = 0
+            AXUIElementGetPid(focusedAppElement as! AXUIElement, &pid)
+            if pid != myPID, let app = NSRunningApplication(processIdentifier: pid) {
+                if let result = try? getWindowTarget(for: app) {
+                    return result
+                }
+            }
+        }
+
+        // 2. Query CoreGraphics for exact Z-order of on-screen windows (top to bottom)
+        guard let list = CGWindowListCopyWindowInfo([.optionOnScreenOnly, .excludeDesktopElements], kCGNullWindowID) as? [[String: Any]] else {
+            throw AccessibilityError.noFocusedWindow
+        }
+
+        for info in list {
+            guard let layer = info[kCGWindowLayer as String] as? Int, layer == 0,
+                  let pid = info[kCGWindowOwnerPID as String] as? pid_t, pid != myPID,
+                  let app = NSRunningApplication(processIdentifier: pid),
+                  app.activationPolicy == .regular else {
+                continue
+            }
+
+            if let result = try? getWindowTarget(for: app) {
+                return result
+            }
+        }
+
+        throw AccessibilityError.noFocusedWindow
+    }
+
+    /// Reads window metadata and current frame in AX coordinates for a specific app
+    public func getWindowTarget(for app: NSRunningApplication) throws -> (element: AXUIElement, target: WindowTarget) {
         let element = try getFocusedWindowElement(for: app)
-
-        var pid: pid_t = 0
-        AXUIElementGetPid(element, &pid)
-
-        let runningApp = NSRunningApplication(processIdentifier: pid)
-        let appName = runningApp?.localizedName
-        let bundleID = runningApp?.bundleIdentifier
 
         var titleValue: AnyObject?
         AXUIElementCopyAttributeValue(element, kAXTitleAttribute as CFString, &titleValue)
@@ -111,14 +160,19 @@ public final class AccessibilityEngine: @unchecked Sendable {
         let frame = try getWindowFrame(element: element)
 
         let target = WindowTarget(
-            pid: pid,
-            appName: appName,
-            bundleID: bundleID,
+            pid: app.processIdentifier,
+            appName: app.localizedName,
+            bundleID: app.bundleIdentifier,
             windowTitle: windowTitle,
             frame: frame
         )
 
         return (element, target)
+    }
+
+    /// Convenience to get the current topmost window target
+    public func getWindowTarget() throws -> (element: AXUIElement, target: WindowTarget) {
+        return try getTopmostWindowTarget()
     }
 
     /// Reads window position and size (AX coordinates)
@@ -145,7 +199,7 @@ public final class AccessibilityEngine: @unchecked Sendable {
         return CGRect(origin: point, size: size)
     }
 
-    /// Moves and resizes window to target AX frame
+    /// Moves and resizes window to target AX frame using 4-pass constraint resolution
     public func setWindowFrame(_ newFrame: CGRect, element: AXUIElement) throws {
         var point = newFrame.origin
         var size = newFrame.size
@@ -155,8 +209,9 @@ public final class AccessibilityEngine: @unchecked Sendable {
             return
         }
 
-        // Standard window manager pattern:
-        // Set position -> Set size -> Set position again to accommodate macOS size constraints
+        // 4-step sequence (Rectangle pattern):
+        // Handles both window expanding and window shrinking without hitting screen bounds clamping
+        _ = AXUIElementSetAttributeValue(element, kAXSizeAttribute as CFString, sizeValue)
         _ = AXUIElementSetAttributeValue(element, kAXPositionAttribute as CFString, posValue)
         let sizeErr = AXUIElementSetAttributeValue(element, kAXSizeAttribute as CFString, sizeValue)
         let posErr = AXUIElementSetAttributeValue(element, kAXPositionAttribute as CFString, posValue)

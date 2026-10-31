@@ -42,6 +42,7 @@ No background daemons requiring SIP to be disabled. 100% native Swift, AppKit, a
 | Shortcut | Action | Description |
 | :--- | :--- | :--- |
 | **`⌥ Space`** | **Show Grid HUD** | Opens floating grid overlay at current cursor position |
+| **`⌃ ⌥ ↵`** / **`⌃ ⌥ M`** | **Maximize Window** | Instantly maximizes focused window |
 | **`⌃ ⌥ T`** | **Auto-Tile Desktop** | Automatically tiles all open windows on display (BSP tree) |
 | **`⌃ ⌥ →`** | **Next Display** | Throws focused window to the next monitor |
 | **`⌃ ⌥ ←`** | **Prev Display** | Throws focused window to the previous monitor |
