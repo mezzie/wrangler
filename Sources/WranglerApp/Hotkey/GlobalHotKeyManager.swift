@@ -16,6 +16,8 @@ public final class GlobalHotKeyManager {
     public var onUndoPressed: (() -> Void)?
     public var onSwapPressed: (() -> Void)?
     public var onNumpadPressed: ((String) -> Void)?
+    public var onFocusDirectionPressed: ((FocusDirection) -> Void)?
+    public var onCycleSameAppPressed: (() -> Void)?
 
     private init() {}
 
@@ -66,6 +68,16 @@ public final class GlobalHotKeyManager {
                 registerRaw(id: id, keyCode: code, carbonModifiers: mods)
             }
         }
+
+        // Spatial Focus Navigation (Vim HJKL: ⌃ ⌥ H/L/K/J)
+        let ctrlOpt = UInt32(controlKey | optionKey)
+        registerRaw(id: 201, keyCode: 4, carbonModifiers: ctrlOpt)  // H: Left
+        registerRaw(id: 202, keyCode: 37, carbonModifiers: ctrlOpt) // L: Right
+        registerRaw(id: 203, keyCode: 40, carbonModifiers: ctrlOpt) // K: Up
+        registerRaw(id: 204, keyCode: 38, carbonModifiers: ctrlOpt) // J: Down
+
+        // Cycle Same-App Windows (⌃ ⌥ `)
+        registerRaw(id: 205, keyCode: 50, carbonModifiers: ctrlOpt) // ` (Grave)
     }
 
     private func installCarbonHandler() {
@@ -122,6 +134,16 @@ public final class GlobalHotKeyManager {
                     manager.onNumpadPressed?("top-half")
                 case 109:
                     manager.onNumpadPressed?("top-right")
+                case 201:
+                    manager.onFocusDirectionPressed?(.left)
+                case 202:
+                    manager.onFocusDirectionPressed?(.right)
+                case 203:
+                    manager.onFocusDirectionPressed?(.up)
+                case 204:
+                    manager.onFocusDirectionPressed?(.down)
+                case 205:
+                    manager.onCycleSameAppPressed?()
                 default:
                     break
                 }

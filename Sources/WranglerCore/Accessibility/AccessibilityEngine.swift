@@ -48,6 +48,10 @@ public enum AccessibilityError: Error, LocalizedError {
     }
 }
 
+public enum FocusDirection: Sendable {
+    case left, right, up, down
+}
+
 public final class AccessibilityEngine: @unchecked Sendable {
     public init() {}
 
@@ -487,5 +491,71 @@ public final class AccessibilityEngine: @unchecked Sendable {
         }
 
         return results
+    }
+
+    /// Focuses the adjacent window in the specified spatial direction (Vim HJKL style)
+    public func focusAdjacentWindow(in direction: FocusDirection, on screen: ScreenInfo) {
+        guard let current = try? getTopmostWindowTarget() else { return }
+        let windows = getTopOnScreenWindows(on: screen)
+        guard windows.count > 1 else { return }
+
+        let curCenter = CGPoint(x: current.target.frame.midX, y: current.target.frame.midY)
+
+        var bestTarget: (element: AXUIElement, target: WindowTarget)?
+        var minDistance: CGFloat = .greatestFiniteMagnitude
+
+        for win in windows where win.target.pid != current.target.pid || win.target.frame != current.target.frame {
+            let winCenter = CGPoint(x: win.target.frame.midX, y: win.target.frame.midY)
+            let dx = winCenter.x - curCenter.x
+            let dy = winCenter.y - curCenter.y
+
+            var isValid = false
+            switch direction {
+            case .left:  isValid = (dx < -30)
+            case .right: isValid = (dx > 30)
+            case .up:    isValid = (dy < -30)
+            case .down:  isValid = (dy > 30)
+            }
+
+            if isValid {
+                let dist = hypot(dx, dy)
+                if dist < minDistance {
+                    minDistance = dist
+                    bestTarget = win
+                }
+            }
+        }
+
+        if let target = bestTarget {
+            _ = AXUIElementSetAttributeValue(target.element, kAXMainAttribute as CFString, kCFBooleanTrue)
+            _ = AXUIElementPerformAction(target.element, kAXRaiseAction as CFString)
+            NSRunningApplication(processIdentifier: target.target.pid)?.activate(options: .activateIgnoringOtherApps)
+        }
+    }
+
+    /// Cycles through open windows of the active application (⌃ ⌥ `)
+    public func cycleSameAppWindows() {
+        guard let front = NSWorkspace.shared.frontmostApplication,
+              front.processIdentifier != ProcessInfo.processInfo.processIdentifier else {
+            return
+        }
+
+        let windows = getAllResizableWindows(for: front)
+        guard windows.count > 1 else { return }
+
+        let appElement = AXUIElementCreateApplication(front.processIdentifier)
+        var focusedVal: AnyObject?
+        _ = AXUIElementCopyAttributeValue(appElement, kAXFocusedWindowAttribute as CFString, &focusedVal)
+
+        var nextIndex = 1
+        if let current = focusedVal as! AXUIElement? {
+            if let idx = windows.firstIndex(of: current) {
+                nextIndex = (idx + 1) % windows.count
+            }
+        }
+
+        let nextWin = windows[nextIndex]
+        _ = AXUIElementSetAttributeValue(nextWin, kAXMainAttribute as CFString, kCFBooleanTrue)
+        _ = AXUIElementPerformAction(nextWin, kAXRaiseAction as CFString)
     }
 }

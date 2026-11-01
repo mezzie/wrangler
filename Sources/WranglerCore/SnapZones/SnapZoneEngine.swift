@@ -12,7 +12,8 @@ public enum SnapZoneEngine {
         threshold: CGFloat = 25
     ) -> CGRect? {
         let vis = screen.visibleFrame
-        guard vis.contains(mousePoint) || screen.frame.contains(mousePoint) else {
+        // Cursor must be inside visibleFrame (excludes Dock and Menu Bar)
+        guard vis.contains(mousePoint) else {
             return nil
         }
 
@@ -148,6 +149,26 @@ public enum SnapZoneEngine {
                 return CGRect(x: startX + sideW + gap, y: startY, width: centerW, height: usableH)
             case .right:
                 return CGRect(x: startX + sideW + centerW + (gap * 2), y: startY, width: sideW, height: usableH)
+            }
+
+        case .codingSplit:
+            // 65% | 35%
+            let leftW = round((usableW - gap) * 0.65)
+            let rightW = usableW - gap - leftW
+            if side == .left {
+                return CGRect(x: startX, y: startY, width: leftW, height: usableH)
+            } else {
+                return CGRect(x: startX + leftW + gap, y: startY, width: rightW, height: usableH)
+            }
+
+        case .goldenRatio:
+            // 61.8% | 38.2%
+            let leftW = round((usableW - gap) * 0.618)
+            let rightW = usableW - gap - leftW
+            if side == .left {
+                return CGRect(x: startX, y: startY, width: leftW, height: usableH)
+            } else {
+                return CGRect(x: startX + leftW + gap, y: startY, width: rightW, height: usableH)
             }
         }
     }

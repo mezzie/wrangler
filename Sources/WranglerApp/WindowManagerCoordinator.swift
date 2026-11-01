@@ -301,6 +301,17 @@ public final class WindowManagerCoordinator: ObservableObject {
         }
     }
 
+    /// Focuses adjacent window in direction (Vim HJKL navigation)
+    public func focusAdjacentWindow(in direction: FocusDirection) {
+        guard let screen = displayManager.currentScreen() else { return }
+        accessibilityEngine.focusAdjacentWindow(in: direction, on: screen)
+    }
+
+    /// Cycles through open windows of active app (⌃ ⌥ `)
+    public func cycleSameAppWindows() {
+        accessibilityEngine.cycleSameAppWindows()
+    }
+
     /// Returns current top on-screen windows for preview in Preferences
     public func getDetectedOnScreenWindows() -> [(element: AXUIElement, target: WindowTarget)] {
         guard let screen = displayManager.currentScreen() else { return [] }

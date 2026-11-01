@@ -14,6 +14,10 @@ public final class SnapZoneMonitor {
 
     private var activeTargetRectAX: CGRect?
 
+    // Window drag tracking
+    private var trackedWindow: AXUIElement?
+    private var initialWindowOrigin: CGPoint?
+
     // Shake detection state
     private var shakeDeltas: [CGFloat] = []
     private var lastShakeTime: Date = Date()
@@ -106,6 +110,38 @@ public final class SnapZoneMonitor {
             guard let screen = displayManager.currentScreen() else { return }
             let mouseLoc = NSEvent.mouseLocation
 
+            // 1. Never trigger if cursor is in Dock or Menu Bar (outside visibleFrame)
+            guard screen.visibleFrame.contains(mouseLoc) else {
+                if activeTargetRectAX != nil {
+                    previewPanel.hide()
+                    activeTargetRectAX = nil
+                }
+                return
+            }
+
+            // 2. Never trigger if frontmost application is Dock or SystemUIServer
+            if let front = NSWorkspace.shared.frontmostApplication,
+               front.bundleIdentifier == "com.apple.dock" || front.bundleIdentifier == "com.apple.systemuiserver" {
+                return
+            }
+
+            // 3. Verify user is actually dragging a window (window origin must move >= 15px)
+            if initialWindowOrigin == nil {
+                if let (win, target) = try? accessibilityEngine.getTopmostWindowTarget() {
+                    trackedWindow = win
+                    initialWindowOrigin = target.frame.origin
+                }
+            }
+
+            if let win = trackedWindow, let origin = initialWindowOrigin {
+                if let currentFrame = try? accessibilityEngine.getWindowFrame(element: win) {
+                    let dist = hypot(currentFrame.origin.x - origin.x, currentFrame.origin.y - origin.y)
+                    guard dist >= 15 else {
+                        return
+                    }
+                }
+            }
+
             var matched: CGRect?
 
             // 1. Check modifier-hold snap (holding Control or fn reveals zone under cursor anywhere)
@@ -123,6 +159,12 @@ public final class SnapZoneMonitor {
                 case .ultrawideFocus:
                     let side: SnapZoneEngine.Side = relX < 0.25 ? .left : (relX < 0.75 ? .center : .right)
                     matched = SnapZoneEngine.calculateTemplateTile(side: side, template: .ultrawideFocus, in: screen.axVisibleFrame, gap: settings.gap, outerMargin: settings.outerMargin)
+                case .codingSplit:
+                    let side: SnapZoneEngine.Side = relX < 0.65 ? .left : .right
+                    matched = SnapZoneEngine.calculateTemplateTile(side: side, template: .codingSplit, in: screen.axVisibleFrame, gap: settings.gap, outerMargin: settings.outerMargin)
+                case .goldenRatio:
+                    let side: SnapZoneEngine.Side = relX < 0.618 ? .left : .right
+                    matched = SnapZoneEngine.calculateTemplateTile(side: side, template: .goldenRatio, in: screen.axVisibleFrame, gap: settings.gap, outerMargin: settings.outerMargin)
                 }
             } else {
                 // 2. Standard edge-drag detection
@@ -146,6 +188,9 @@ public final class SnapZoneMonitor {
             }
 
         case .leftMouseUp:
+            trackedWindow = nil
+            initialWindowOrigin = nil
+
             guard let targetRectAX = activeTargetRectAX else { return }
             previewPanel.hide()
             activeTargetRectAX = nil

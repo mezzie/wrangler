@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.8.0] - 2026-11-01
+
+### Added
+- **Spatial Focus Navigation**: Focus adjacent windows without touching the mouse (`⌃ ⌥ H` left, `⌃ ⌥ L` right, `⌃ ⌥ K` up, `⌃ ⌥ J` down).
+- **Same-App Window Cycling**: Cycle through open windows of the active application with `⌃ ⌥ ` `.
+- **Smooth Window Animations**: Toggleable 60fps ease-out window gliding in Preferences.
+- **Coding & Golden Ratio Templates**: Added 65% | 35% Coding Split and 61.8% | 38.2% Golden Ratio Snap Zone templates.
+- **Raycast Extension**: Official Raycast extension package in `extensions/raycast-wrangler/`.
+
+### Fixed
+- **Dock Click False Positives**: Snap Zones strictly exclude the macOS Dock and require the window to move at least 15 pixels, preventing accidental preview boxes when clicking Dock icons.
+- **37 Automated Unit Tests**: Added regression guard `testDockCursorReturnsNil`.
+
+---
+
 ## [1.7.0] - 2026-10-31
 
 ### Added

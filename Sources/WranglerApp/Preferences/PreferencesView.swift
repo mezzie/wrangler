@@ -435,6 +435,22 @@ public struct PreferencesView: View {
             Divider()
 
             Toggle(isOn: Binding(
+                get: { settings.animateWindowSnapping },
+                set: { settings.animateWindowSnapping = $0; saveSettings() }
+            )) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Smooth window animation")
+                        .font(.body)
+                        .fontWeight(.medium)
+                    Text("Glides windows into position with smooth 60fps ease-out animation.")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+            }
+
+            Divider()
+
+            Toggle(isOn: Binding(
                 get: { settings.shakeToSummon },
                 set: { settings.shakeToSummon = $0; saveSettings() }
             )) {
@@ -555,6 +571,10 @@ public struct PreferencesView: View {
                 recorderRow(id: "nextDisplay", label: "Move to Next Display", shortcut: settings.nextDisplayShortcut)
                 recorderRow(id: "prevDisplay", label: "Move to Previous Display", shortcut: settings.prevDisplayShortcut)
                 recorderRow(id: "undo", label: "Undo Last Snap", shortcut: settings.undoShortcut)
+
+                staticShortcutRow(label: "Focus Window Left / Right", shortcut: "⌃ ⌥ H  /  ⌃ ⌥ L")
+                staticShortcutRow(label: "Focus Window Up / Down", shortcut: "⌃ ⌥ K  /  ⌃ ⌥ J")
+                staticShortcutRow(label: "Cycle Same-App Windows", shortcut: "⌃ ⌥ `")
             }
 
             Divider()
@@ -571,6 +591,24 @@ public struct PreferencesView: View {
                     .font(.caption)
                     .foregroundColor(.secondary)
             }
+        }
+    }
+
+    @ViewBuilder
+    private func staticShortcutRow(label: String, shortcut: String) -> some View {
+        HStack {
+            Text(label)
+                .font(.body)
+                .foregroundColor(.primary)
+            Spacer()
+            Text(shortcut)
+                .font(.system(.subheadline, design: .monospaced))
+                .fontWeight(.medium)
+                .foregroundColor(.secondary)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+                .background(Color.primary.opacity(0.06))
+                .cornerRadius(5)
         }
     }
 

@@ -1,0 +1,57 @@
+{
+  "$schema": "https://www.raycast.com/schemas/extension.json",
+  "name": "wrangler",
+  "title": "Wrangler Window Manager",
+  "description": "Control Wrangler window manager from Raycast: Auto-Tile, Maximize, Snap, and Workspaces",
+  "icon": "icon.png",
+  "author": "mezzie",
+  "categories": [
+    "Productivity",
+    "System"
+  ],
+  "license": "MIT",
+  "commands": [
+    {
+      "name": "auto-tile",
+      "title": "Auto-Tile Desktop",
+      "subtitle": "Wrangler",
+      "description": "Automatically tiles open windows into a clean BSP tree",
+      "mode": "no-view"
+    },
+    {
+      "name": "maximize",
+      "title": "Maximize Window",
+      "subtitle": "Wrangler",
+      "description": "Maximizes the focused window",
+      "mode": "no-view"
+    },
+    {
+      "name": "snap-left",
+      "title": "Snap Left Half",
+      "subtitle": "Wrangler",
+      "description": "Snaps focused window to left half",
+      "mode": "no-view"
+    },
+    {
+      "name": "snap-right",
+      "title": "Snap Right Half",
+      "subtitle": "Wrangler",
+      "description": "Snaps focused window to right half",
+      "mode": "no-view"
+    },
+    {
+      "name": "swap-windows",
+      "title": "Swap Front Windows",
+      "subtitle": "Wrangler",
+      "description": "Swaps the two frontmost windows on screen",
+      "mode": "no-view"
+    }
+  ],
+  "dependencies": {
+    "@raycast/api": "^1.80.0"
+  },
+  "scripts": {
+    "build": "ray build -e dist",
+    "dev": "ray develop"
+  }
+}

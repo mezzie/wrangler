@@ -53,6 +53,16 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
                 WindowManagerCoordinator.shared.snapFocusedWindow(preset: preset)
             }
         }
+        GlobalHotKeyManager.shared.onFocusDirectionPressed = { dir in
+            Task { @MainActor in
+                WindowManagerCoordinator.shared.focusAdjacentWindow(in: dir)
+            }
+        }
+        GlobalHotKeyManager.shared.onCycleSameAppPressed = {
+            Task { @MainActor in
+                WindowManagerCoordinator.shared.cycleSameAppWindows()
+            }
+        }
         GlobalHotKeyManager.shared.registerFromSettings()
 
         // Start drag-to-snap zones monitor

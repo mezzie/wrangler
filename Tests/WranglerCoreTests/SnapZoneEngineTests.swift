@@ -77,6 +77,20 @@ final class SnapZoneEngineTests: XCTestCase {
         XCTAssertNil(zone)
     }
 
+    // REGRESSION GUARD: Never trigger snap zones when cursor is inside the Dock (outside visibleFrame)
+    func testDockCursorReturnsNil() {
+        // Dock is located at Y=0..78. Cursor at Y=35 (inside Dock)
+        let point = CGPoint(x: 1280, y: 35)
+        let zone = SnapZoneEngine.matchZone(
+            mousePoint: point,
+            screen: screen,
+            template: .twoColumns,
+            threshold: 25
+        )
+
+        XCTAssertNil(zone, "Cursor in Dock must never trigger snap zones")
+    }
+
     func testTopLeftCornerQuarter() {
         let point = CGPoint(x: 5, y: 1045)
         let zone = SnapZoneEngine.matchZone(
@@ -110,5 +124,37 @@ final class SnapZoneEngineTests: XCTestCase {
         XCTAssertNotNil(zone)
         // (2544 - 16) / 3 = 842.66 -> 843
         XCTAssertEqual(zone?.width, 843)
+    }
+
+    func testCodingSplit65Percent() {
+        let point = CGPoint(x: 5, y: 500)
+        let zone = SnapZoneEngine.matchZone(
+            mousePoint: point,
+            screen: screen,
+            template: .codingSplit,
+            gap: 8,
+            outerMargin: 8,
+            threshold: 25
+        )
+
+        XCTAssertNotNil(zone)
+        // Usable = 2544 - 8 = 2536. 2536 * 0.65 = 1648.4 -> 1648
+        XCTAssertEqual(zone?.width, 1648)
+    }
+
+    func testGoldenRatioSplit() {
+        let point = CGPoint(x: 5, y: 500)
+        let zone = SnapZoneEngine.matchZone(
+            mousePoint: point,
+            screen: screen,
+            template: .goldenRatio,
+            gap: 8,
+            outerMargin: 8,
+            threshold: 25
+        )
+
+        XCTAssertNotNil(zone)
+        // 2536 * 0.618 = 1567.248 -> 1567
+        XCTAssertEqual(zone?.width, 1567)
     }
 }

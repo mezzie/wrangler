@@ -17,6 +17,7 @@ public struct AppSettings: Codable, Equatable, Sendable {
     public var shakeToSummon: Bool
     public var modifierHoldSnap: Bool
     public var enableNumpadHotkeys: Bool
+    public var animateWindowSnapping: Bool
 
     // Customizable Shortcuts
     public var overlayShortcut: CustomShortcut
@@ -44,6 +45,7 @@ public struct AppSettings: Codable, Equatable, Sendable {
         shakeToSummon: Bool = false,
         modifierHoldSnap: Bool = true,
         enableNumpadHotkeys: Bool = true,
+        animateWindowSnapping: Bool = false,
         overlayShortcut: CustomShortcut = .defaultOverlay,
         maximizeShortcut: CustomShortcut = .defaultMaximize,
         autoTileShortcut: CustomShortcut = .defaultAutoTile,
@@ -68,6 +70,7 @@ public struct AppSettings: Codable, Equatable, Sendable {
         self.shakeToSummon = shakeToSummon
         self.modifierHoldSnap = modifierHoldSnap
         self.enableNumpadHotkeys = enableNumpadHotkeys
+        self.animateWindowSnapping = animateWindowSnapping
         self.overlayShortcut = overlayShortcut
         self.maximizeShortcut = maximizeShortcut
         self.autoTileShortcut = autoTileShortcut
@@ -114,6 +117,7 @@ public struct AppSettings: Codable, Equatable, Sendable {
         self.avoidStageManager = true
         self.stageManagerMargin = 72
         self.cycleRepeatedSnaps = true
+        self.animateWindowSnapping = false
         self.appLanguage = "system"
         self.ignoredBundleIDs = ["com.apple.calculator", "com.1password.1password"]
     }
