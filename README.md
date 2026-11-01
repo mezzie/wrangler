@@ -72,6 +72,15 @@ Drag any window by its title bar to screen edges or corners to trigger template 
 ### Automated Window Tiling (`⌃ ⌥ T`)
 Organizes all visible, non-minimized windows on the active display into a balanced Binary Space Partitioning (BSP) tree. Automatically scales windows to eliminate overlap while keeping the active application focused.
 
+### Workspaces (App Profiles)
+Save your entire multi-window desktop setup into a named profile and restore it with one click or shortcut. Uses a deterministic App-to-Slot model with occlusion culling so background dialogs and hidden windows never collide.
+
+### Window Swap (`⌃ ⌥ S`)
+Instantly swaps the positions and sizes of the two frontmost windows on the display without manual resizing.
+
+### Spatial Focus Navigation (`⌃ ⌥ H/L/K/J`)
+Vim-style directional keyboard navigation. Jump focus to the adjacent window to the left (`H`), right (`L`), above (`K`), or below (`J`) without touching the mouse or trackpad.
+
 ### Multi-Display Hopping
 Transfer windows across monitors instantly while preserving proportional dimensions:
 - `⌃ ⌥ →` moves focused window to the next display.
@@ -95,6 +104,11 @@ Periodically checks GitHub Releases for new updates. Allows one-click in-place u
 | `⌥ Space` | Grid Overlay | Opens interactive grid HUD at mouse cursor |
 | `⌃ ⌥ ↵` or `⌃ ⌥ M` | Maximize | Expands focused window to full visible screen |
 | `⌃ ⌥ T` | Auto-Tile | Organizes open windows into a non-overlapping BSP tree |
+| `⌃ ⌥ S` | Swap Windows | Swaps positions of the two frontmost windows |
+| `⌃ ⌥ H` / `⌃ ⌥ L` | Focus Left / Right | Jumps keyboard focus to adjacent window horizontally |
+| `⌃ ⌥ K` / `⌃ ⌥ J` | Focus Up / Down | Jumps keyboard focus to adjacent window vertically |
+| `⌃ ⌥ ` ` | Cycle App Windows | Cycles through open windows of the active application |
+| `⌃ ⌥ 1..9` | Numpad Snapping | Directly snaps to spatial positions via keypad |
 | `⌃ ⌥ →` | Next Screen | Shifts focused window to the next connected display |
 | `⌃ ⌥ ←` | Prev Screen | Shifts focused window to the previous connected display |
 | `⌥ ⌘ Z` | Undo | Restores window to its coordinates before the last snap |
@@ -189,7 +203,7 @@ Build the release `.app` bundle:
 Package the release `.dmg`:
 
 ```bash
-./scripts/create-dmg.sh 1.5.0
+./scripts/create-dmg.sh 1.8.0
 ```
 
 ---
