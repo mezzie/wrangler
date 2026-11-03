@@ -8,7 +8,7 @@ echo "==> Building Wrangler (release mode)..."
 cd "${ROOT_DIR}"
 swift build -c release --product Wrangler
 
-VERSION="${1:-1.8.0}"
+VERSION="${1:-1.9.0}"
 BIN_PATH="${ROOT_DIR}/.build/release/Wrangler"
 APP_DIR="${ROOT_DIR}/build/Wrangler.app"
 
@@ -59,11 +59,14 @@ cat << 'EOF' > "${APP_DIR}/Contents/Info.plist"
 EOF
 
 echo "==> Code-signing ${APP_DIR}..."
-SIGNING_IDENTITY=$(security find-identity -v -p codesigning | grep "Apple Development" | head -n 1 | awk -F '"' '{print $2}' || true)
+SIGNING_IDENTITY=$(security find-identity -v -p codesigning | grep "Developer ID Application" | head -n 1 | awk -F '"' '{print $2}' || true)
+if [ -z "${SIGNING_IDENTITY}" ]; then
+    SIGNING_IDENTITY=$(security find-identity -v -p codesigning | grep "Apple Development" | head -n 1 | awk -F '"' '{print $2}' || true)
+fi
 
 if [ -n "${SIGNING_IDENTITY}" ]; then
     echo "    Using Keychain certificate: ${SIGNING_IDENTITY}"
-    codesign --force --deep --sign "${SIGNING_IDENTITY}" "${APP_DIR}"
+    codesign --force --deep --options runtime --sign "${SIGNING_IDENTITY}" "${APP_DIR}"
 else
     echo "    Using ad-hoc signature (-)"
     codesign --force --deep --sign - --identifier "com.rngo.wrangler" "${APP_DIR}"

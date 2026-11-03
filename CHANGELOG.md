@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.9.0] - 2026-11-03
+
+### Added
+- **Official Apple Notarization**: Every release DMG and application bundle is now cryptographically signed with an official Apple Developer ID (`Developer ID Application: Richard Ngo`) and notarized directly through Apple's notary servers with tickets stapled.
+- **Hardened Runtime**: Enabled standard macOS Hardened Runtime security options across all targets.
+
+### Fixed
+- **Gatekeeper "Malware / Not Opened" Warnings**: Permanently resolved macOS Gatekeeper blocking Wrangler on new installations. Double-clicking the DMG opens cleanly on any Mac without security prompts or terminal workarounds.
+
+---
+
 ## [1.8.0] - 2026-11-01
 
 ### Added
