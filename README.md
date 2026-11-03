@@ -47,6 +47,8 @@ brew install mezzie/tap/wrangler
 2. Drag **Wrangler** into your `/Applications` directory.
 3. Open Wrangler and grant **Accessibility** permissions when prompted in **System Settings → Privacy & Security → Accessibility**.
 
+*Note: If macOS Gatekeeper warns on first open for direct DMG downloads, right-click (Control-click) `Wrangler.app` in `/Applications` → select **Open**, or click **Open Anyway** in **System Settings → Privacy & Security**. Homebrew installations bypass this automatically.*
+
 ### Build from Source
 ```bash
 git clone https://github.com/mezzie/wrangler.git
