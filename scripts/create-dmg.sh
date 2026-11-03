@@ -4,7 +4,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
 
-VERSION="${1:-1.9.0}"
+VERSION="${1:-1.9.1}"
 APP_PATH="${ROOT_DIR}/build/Wrangler.app"
 DMG_PATH="${ROOT_DIR}/build/Wrangler-${VERSION}.dmg"
 STAGING_DIR="${ROOT_DIR}/build/dmg-staging"

@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.9.1] - 2026-11-03
+
+### Fixed
+- **Spotlight Search Visibility**: Removed static `LSUIElement` from `Info.plist` while preserving programmatic accessory mode, allowing Wrangler to be indexed as a first-class application in macOS Spotlight (`⌘ Space`), Raycast, and Alfred.
+
+---
+
 ## [1.9.0] - 2026-11-03
 
 ### Added

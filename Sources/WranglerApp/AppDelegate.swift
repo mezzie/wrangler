@@ -74,8 +74,8 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
             await UpdateManager.shared.checkForUpdates(silent: true)
         }
 
-        // Prompt for Accessibility if not granted yet
-        _ = AccessibilityEngine.isTrusted(promptIfNeeded: true)
+        // Check Accessibility status quietly without popping system alerts
+        _ = AccessibilityEngine.isTrusted(promptIfNeeded: false)
 
         print("Wrangler GUI launched. Running in menu bar.")
     }
