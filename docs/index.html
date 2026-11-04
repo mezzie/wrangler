@@ -385,7 +385,7 @@
     <section class="hero">
       <div class="hero-badge">
         <span class="hero-badge-dot"></span>
-        v1.9.1 Released &bull; Apple Notarized
+        v1.9.3 Released &bull; Apple Notarized
       </div>
       <h1>The Open-Source Window Manager for macOS</h1>
       <p class="hero-subtitle">
@@ -404,9 +404,10 @@
         </a>
         <span class="download-meta">macOS 13 (Ventura) or later &bull; Apple Silicon &amp; Intel &bull; 1.5MB</span>
 
-        <div class="brew-box" onclick="navigator.clipboard.writeText('brew install mezzie/tap/wrangler'); alert('Copied to clipboard!')" title="Click to copy">
+        <div class="brew-box" id="brew-btn" onclick="copyBrew()" title="Click to copy">
           <span>$</span>
           <code>brew install mezzie/tap/wrangler</code>
+          <span id="copy-label" style="margin-left: auto; font-size: 11px; color: #94a3b8; font-family: var(--font-stack);">Copy</span>
         </div>
       </div>
     </section>
@@ -516,6 +517,11 @@
               <td>Cycles through open windows of the active application</td>
             </tr>
             <tr>
+              <td><span class="kbd">⌃ ⌥ 1..9</span></td>
+              <td><strong>Numpad Snapping</strong></td>
+              <td>Directly snaps to spatial positions via number keypad</td>
+            </tr>
+            <tr>
               <td><span class="kbd">⌃ ⌥ →</span> / <span class="kbd">⌃ ⌥ ←</span></td>
               <td><strong>Next / Prev Display</strong></td>
               <td>Shifts focused window to another connected monitor</td>
@@ -543,5 +549,18 @@
       </p>
     </footer>
   </div>
+
+  <script>
+    function copyBrew() {
+      navigator.clipboard.writeText('brew install mezzie/tap/wrangler');
+      const label = document.getElementById('copy-label');
+      label.innerText = 'Copied!';
+      label.style.color = '#38bdf8';
+      setTimeout(() => {
+        label.innerText = 'Copy';
+        label.style.color = '#94a3b8';
+      }, 2000);
+    }
+  </script>
 </body>
 </html>
