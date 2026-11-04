@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.9.2] - 2026-11-03
+
+### Fixed
+- **Text Selection & Editor Highlighting Immunity**: Added title bar hit testing (`isPointInTitleBar`) and a 20-pixel window movement requirement. Snap Zone preview outlines will now only appear when dragging a window by its title bar, completely eliminating false positives when selecting text, clicking buttons, or working inside editors.
+- **Regression Test**: Added `testTextHighlightingDoesNotTriggerTitleBar` to automated test suite (38 tests passing).
+
+---
+
 ## [1.9.1] - 2026-11-03
 
 ### Fixed

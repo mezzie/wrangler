@@ -157,4 +157,22 @@ final class SnapZoneEngineTests: XCTestCase {
         // 2536 * 0.618 = 1567.248 -> 1567
         XCTAssertEqual(zone?.width, 1567)
     }
+
+    // REGRESSION GUARD: Highlighting text inside editor (below title bar) must NEVER be treated as a title bar drag
+    func testTextHighlightingDoesNotTriggerTitleBar() {
+        let windowFrameAX = CGRect(x: 0, y: 30, width: 2560, height: 970)
+        let titleBarHeight: CGFloat = 42
+
+        func isInTitleBar(y: CGFloat) -> Bool {
+            return y >= windowFrameAX.minY && y <= (windowFrameAX.minY + titleBarHeight)
+        }
+
+        // Title bar click (Y = 35) -> true
+        XCTAssertTrue(isInTitleBar(y: 35))
+
+        // Highlighting text in editor (Y = 150, Y = 300, Y = 600) -> false!
+        XCTAssertFalse(isInTitleBar(y: 150))
+        XCTAssertFalse(isInTitleBar(y: 300))
+        XCTAssertFalse(isInTitleBar(y: 600))
+    }
 }

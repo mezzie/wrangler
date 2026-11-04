@@ -8,7 +8,7 @@ echo "==> Building Wrangler (release mode)..."
 cd "${ROOT_DIR}"
 swift build -c release --product Wrangler
 
-VERSION="${1:-1.9.1}"
+VERSION="${1:-1.9.2}"
 BIN_PATH="${ROOT_DIR}/.build/release/Wrangler"
 APP_DIR="${ROOT_DIR}/build/Wrangler.app"
 

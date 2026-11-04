@@ -17,6 +17,7 @@ public final class SnapZoneMonitor {
     // Window drag tracking
     private var trackedWindow: AXUIElement?
     private var initialWindowOrigin: CGPoint?
+    private var isTitleBarDrag: Bool = false
 
     // Shake detection state
     private var shakeDeltas: [CGFloat] = []
@@ -55,6 +56,9 @@ public final class SnapZoneMonitor {
         }
         previewPanel.hide()
         activeTargetRectAX = nil
+        trackedWindow = nil
+        initialWindowOrigin = nil
+        isTitleBarDrag = false
     }
 
     private func handleMouseMoved(_ event: NSEvent) {
@@ -73,14 +77,12 @@ public final class SnapZoneMonitor {
         let dx = currentX - lastMouseX
         lastMouseX = currentX
 
-        // Only record significant movements
         if abs(dx) > 15 {
             shakeDeltas.append(dx)
             if shakeDeltas.count > 10 {
                 shakeDeltas.removeFirst()
             }
 
-            // Check for at least 4 alternating direction reversals
             var reversals = 0
             for i in 1..<shakeDeltas.count {
                 if (shakeDeltas[i] > 0 && shakeDeltas[i - 1] < 0) || (shakeDeltas[i] < 0 && shakeDeltas[i - 1] > 0) {
@@ -93,6 +95,14 @@ public final class SnapZoneMonitor {
                 WindowManagerCoordinator.shared.showOverlay()
             }
         }
+    }
+
+    private func isPointInTitleBar(mouseLocAX: CGPoint, windowFrameAX: CGRect) -> Bool {
+        let titleBarHeight: CGFloat = 42
+        return mouseLocAX.x >= windowFrameAX.minX &&
+               mouseLocAX.x <= windowFrameAX.maxX &&
+               mouseLocAX.y >= windowFrameAX.minY &&
+               mouseLocAX.y <= (windowFrameAX.minY + titleBarHeight)
     }
 
     private func handleMouseEvent(_ event: NSEvent) {
@@ -125,26 +135,45 @@ public final class SnapZoneMonitor {
                 return
             }
 
-            // 3. Verify user is actually dragging a window (window origin must move >= 15px)
+            // 3. Initialize drag tracking on first dragged event
             if initialWindowOrigin == nil {
                 if let (win, target) = try? accessibilityEngine.getTopmostWindowTarget() {
-                    trackedWindow = win
-                    initialWindowOrigin = target.frame.origin
+                    let mouseLocAX = displayManager.cocoaToAX(rect: CGRect(origin: mouseLoc, size: .zero)).origin
+
+                    // Verify the drag started on the window's title bar (not inside text area, editor, or web canvas)
+                    if isPointInTitleBar(mouseLocAX: mouseLocAX, windowFrameAX: target.frame) {
+                        trackedWindow = win
+                        initialWindowOrigin = target.frame.origin
+                        isTitleBarDrag = true
+                    } else {
+                        isTitleBarDrag = false
+                        return
+                    }
+                } else {
+                    return
                 }
             }
 
-            if let win = trackedWindow, let origin = initialWindowOrigin {
-                if let currentFrame = try? accessibilityEngine.getWindowFrame(element: win) {
-                    let dist = hypot(currentFrame.origin.x - origin.x, currentFrame.origin.y - origin.y)
-                    guard dist >= 15 else {
-                        return
-                    }
-                }
+            // 4. Must be a title bar drag and window MUST physically move >= 20px
+            guard isTitleBarDrag,
+                  let win = trackedWindow,
+                  let origin = initialWindowOrigin else {
+                return
+            }
+
+            guard let currentFrame = try? accessibilityEngine.getWindowFrame(element: win) else {
+                return
+            }
+
+            let dist = hypot(currentFrame.origin.x - origin.x, currentFrame.origin.y - origin.y)
+            guard dist >= 20 else {
+                // Window hasn't moved yet (text selection, clicking inside window)
+                return
             }
 
             var matched: CGRect?
 
-            // 1. Check modifier-hold snap (holding Control or fn reveals zone under cursor anywhere)
+            // 5. Check modifier-hold snap or edge-drag
             let flags = event.modifierFlags
             if settings.modifierHoldSnap && (flags.contains(.control) || flags.contains(.function)) {
                 let vis = screen.visibleFrame
@@ -167,7 +196,6 @@ public final class SnapZoneMonitor {
                     matched = SnapZoneEngine.calculateTemplateTile(side: side, template: .goldenRatio, in: screen.axVisibleFrame, gap: settings.gap, outerMargin: settings.outerMargin)
                 }
             } else {
-                // 2. Standard edge-drag detection
                 matched = SnapZoneEngine.matchZone(
                     mousePoint: mouseLoc,
                     screen: screen,
@@ -188,18 +216,23 @@ public final class SnapZoneMonitor {
             }
 
         case .leftMouseUp:
+            let wasActive = (activeTargetRectAX != nil)
+            let targetRectAX = activeTargetRectAX
+
+            // Reset drag tracking state
             trackedWindow = nil
             initialWindowOrigin = nil
-
-            guard let targetRectAX = activeTargetRectAX else { return }
+            isTitleBarDrag = false
             previewPanel.hide()
             activeTargetRectAX = nil
 
-            // Snap the window that was just dropped
+            guard wasActive, let snapRect = targetRectAX else { return }
+
+            // Snap the window that was dragged by title bar
             do {
                 let (element, target) = try accessibilityEngine.getTopmostWindowTarget()
                 windowHistory.push(pid: target.pid, frame: target.frame)
-                try accessibilityEngine.setWindowFrame(targetRectAX, element: element)
+                try accessibilityEngine.setWindowFrame(snapRect, element: element)
                 NSRunningApplication(processIdentifier: target.pid)?.activate(options: .activateIgnoringOtherApps)
             } catch {
                 print("Snap Zone drop error: \(error.localizedDescription)")
