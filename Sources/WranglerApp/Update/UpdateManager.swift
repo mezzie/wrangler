@@ -31,7 +31,7 @@ public struct GitHubAsset: Codable, Sendable {
 public final class UpdateManager: ObservableObject {
     public static let shared = UpdateManager()
 
-    public static let currentVersion = "1.9.2"
+    public static let currentVersion = "1.9.3"
 
     @Published public var availableUpdate: GitHubRelease?
     @Published public var isChecking = false

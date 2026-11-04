@@ -81,4 +81,37 @@ final class RegressionBugTests: XCTestCase {
         XCTAssertEqual(adjusted.size.width, 2488)
         XCTAssertEqual(adjusted.size.height, 972)
     }
+
+    // REGRESSION GUARD 5: Grid Overlay Shortcut Specification
+    // Guard against Option + Space keycode or Carbon modifier bitmask regressions
+    func testOverlayShortcutSpecification() {
+        let overlay = CustomShortcut.defaultOverlay
+        XCTAssertEqual(overlay.keyCode, 49, "Space keycode on macOS Carbon must be 49")
+        XCTAssertEqual(overlay.carbonModifiers, 2048, "Option key bitmask in Carbon must be 2048 (1 << 11)")
+        XCTAssertEqual(overlay.displayString, "⌥ Space")
+
+        // Test AppSettings default binding
+        let settings = AppSettings.default
+        XCTAssertEqual(settings.overlayShortcut, CustomShortcut.defaultOverlay)
+    }
+
+    // REGRESSION GUARD 6: Custom Shortcut Rebinding & Roundtrip
+    // Guard against custom shortcuts losing modifiers when serialized or rebound
+    func testCustomShortcutSerialization() throws {
+        let custom = CustomShortcut(
+            keyCode: 13, // 'W'
+            carbonModifiers: 2048 | 256, // Option + Command
+            displayString: "⌥ ⌘ W"
+        )
+
+        let encoder = JSONEncoder()
+        let data = try encoder.encode(custom)
+
+        let decoder = JSONDecoder()
+        let decoded = try decoder.decode(CustomShortcut.self, from: data)
+
+        XCTAssertEqual(decoded.keyCode, 13)
+        XCTAssertEqual(decoded.carbonModifiers, 2048 | 256)
+        XCTAssertEqual(decoded.displayString, "⌥ ⌘ W")
+    }
 }

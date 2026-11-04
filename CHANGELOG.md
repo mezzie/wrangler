@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.9.3] - 2026-11-04
+
+### Improved
+- **Accessibility Authorization Recovery**: If Accessibility permissions are revoked or missing, triggering the grid overlay now displays an informative alert with a one-click button to open System Settings, preventing silent failures.
+- **40 Automated Unit Tests**: Added regression tests `testOverlayShortcutSpecification` and `testCustomShortcutSerialization` to guard default shortcut mappings and custom modifier serialization.
+
+---
+
 ## [1.9.2] - 2026-11-03
 
 ### Fixed

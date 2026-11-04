@@ -80,7 +80,17 @@ public final class WindowManagerCoordinator: ObservableObject {
 
     public func showOverlay() {
         guard AccessibilityEngine.isTrusted() else {
-            print("Notice: Accessibility permission not granted yet.")
+            let alert = NSAlert()
+            alert.messageText = "Accessibility Permissions Required"
+            alert.informativeText = "Wrangler needs Accessibility permission to organize windows. Please enable Wrangler in System Settings -> Privacy & Security -> Accessibility."
+            alert.alertStyle = .warning
+            alert.addButton(withTitle: "Open System Settings")
+            alert.addButton(withTitle: "Cancel")
+            if alert.runModal() == .alertFirstButtonReturn {
+                if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility") {
+                    NSWorkspace.shared.open(url)
+                }
+            }
             return
         }
 
